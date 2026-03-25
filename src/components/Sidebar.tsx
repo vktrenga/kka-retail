@@ -13,9 +13,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ open, setOpen }) => {
 
   const menuItems = [
     { name: "Dashboard", path: "/" },
-    { name: "Orders", path: "/orders" },
-    { name: "Products", path: "/products" },
-    { name: "Customers", path: "/customers" },
+    { name: "Sales Data Upload", path: "/sales" },
+    { name: "Sales Data Analytics", path: "/analytics" },
+    // { name: "Customers", path: "/customers" },
   ];
 
   return (

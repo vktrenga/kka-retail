@@ -18,17 +18,13 @@ export default function RootLayout({
 
   return (
     <html lang="en">
-<body className="flex bg-gray-100 dark:bg-gray-900 h-screen overflow-hidden  gap-4 p-4">
+      <body className="flex bg-gray-100 dark:bg-gray-900 h-screen overflow-hidden  gap-4 p-4">
         {/* Sidebar */}
-        {!isLoginPage && (
-          <Sidebar open={open} setOpen={setOpen} />
-        )}
+        {!isLoginPage && <Sidebar open={open} setOpen={setOpen} />}
 
-<div className="flex-1 flex flex-col min-h-screen overflow-hidden  gap-4 p-4">
+        <div className="flex-1 flex flex-col min-h-screen overflow-hidden  gap-4 p-4">
           {/* Navbar */}
-          {!isLoginPage && (
-            <Navbar open={open} setOpen={setOpen} />
-          )}
+          {!isLoginPage && <Navbar open={open} setOpen={setOpen} />}
 
           {/* Content */}
           <main className={isLoginPage ? "" : "p-p-4 overflow-auto"}>
