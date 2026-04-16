@@ -1,71 +1,130 @@
 "use client";
 
-import { useState } from "react";
-import { Mode,Category, Period, Store, FiltersType, PAGE_SIZE} from "@/types/analytics";
-import { generateCategories , createPeriod, stores} from "@/data/mockData";
+import { SetStateAction, useEffect, useState } from "react";
+import { Mode, FiltersType,  } from "@/types/analytics";
 import { Filters } from "@/components/analytics/filter";
 import { StoreCard } from "@/components/analytics/store-card";
 import { Header } from "@/components/analytics/hearder";
+import { fetchReport } from "@/api/analytics";
+import { storeServie } from "@/api/store";
+
+const formatLocalDate = (d: Date) => {
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+};
+
+/* ✅ DEFAULT DATE FUNCTION */
+const getDefaultDates = () => {
+  const today = new Date();
+
+  const firstDay = new Date(
+    today.getFullYear(),
+    today.getMonth(),
+    1
+  );
+
+  return {
+    fromDate: formatLocalDate(firstDay), // ✅ FIXED
+    toDate: formatLocalDate(today),      // ✅ FIXED
+  };
+};
+
 
 export default function Dashboard() {
   const [activeStores, setActiveStores] = useState<number[]>([]);
-  const [activeIndex, setActiveIndex] = useState<number | null>(null);
-  const [visibleCount, setVisibleCount] = useState<number>(PAGE_SIZE);
-  const [mode, setMode] = useState<Mode>("week");
+  const [apiDate, setAPIData] = useState<any>()
+  /* ✅ FIX 1: Default mode = day */
+  const [mode, setMode] = useState<Mode>("day");
 
-  const [filters, setFilters] = useState<FiltersType>({
-    from: "",
-    to: "",
-    month: "",
-    year: "2026",
-    months: [],
+  /* ✅ Store-wise active index */
+  const [activeIndexMap, setActiveIndexMap] = useState<{
+    [key: number]: string | null;
+  }>({});
+
+
+  // get All stores 
+    const [storeList, setStoreList] = useState<[]>([]);
+    
+    useEffect(() => {
+      const fetchStores = async () => {
+        try {
+          const res = await storeServie.getAll(); // Replace with your API
+          setStoreList(res?.data?.data)
+        } catch (err) {
+          console.error("Failed to fetch stores", err);
+        }
+      };
+      fetchStores();
+    }, []);
+
+  /* ✅ FIX 2: Initialize filters with default dates */
+  const [filters, setFilters] = useState<FiltersType>(() => {
+    const { fromDate, toDate } = getDefaultDates();
+
+    return {
+      fromDate,
+      toDate,
+      year: new Date().getFullYear().toString(),
+      month:'',
+      mode:'day',
+      stores:[]
+
+    };
   });
 
-  const format = (n: number) => `₹${n.toLocaleString()}`;
+  /* ✅ FIX 3: Reset when switching back to DAY */
+  useEffect(() => {
+      setFilters((prev) => ({
+        ...prev,
+        mode,
+      }));
+  }, [mode]);
+
+  /* ✅ FIX 4: Search button handler */
+  const handleSearch = async () => {
+    const res = await fetchReport(filters);
+    setAPIData(res)
+  };
+
+  const format = (n: number) =>
+    `₹${n.toLocaleString("en-IN", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })}`;
 
   return (
     <div className="min-h-screen bg-[#f5f7fb] p-6 space-y-6">
       <Header mode={mode} setMode={setMode} />
 
-      <Filters mode={mode} filters={filters} setFilters={setFilters} />
+      {/* ✅ FIX 5: Pass onSearch */}
+      <Filters
+        mode={mode}
+        filters={filters}
+        setFilters={setFilters}
+        onSearch={handleSearch}
+      />
 
       <div className="space-y-6">
-        {stores.map((store, i) => (
+        {apiDate?.data?.map((storeData: any, i:number) => (
           <StoreCard
             key={i}
-            store={store}
+            storeData={storeData}
             index={i}
             activeStores={activeStores}
             setActiveStores={setActiveStores}
-            activeIndex={activeIndex}
-            setActiveIndex={setActiveIndex}
-            visibleCount={visibleCount}
-            setVisibleCount={setVisibleCount}
-            format={format}
-            mode={mode}
-          />
+            activeIndex={activeIndexMap[i] || null}
+            setActiveIndex={(value) => setActiveIndexMap((prev) => ({
+              ...prev,
+              [i]: value,
+            }))}
+            mode={mode} 
+            storeList ={storeList || []}
+            />
         ))}
       </div>
     </div>
   );
 }
-
-// ---------- HEADER ----------
-
-
-// ---------- FILTERS ----------
-
-
-// ---------- STORE CARD ----------
-
-// ---------- DAY TABS ----------
-
-
-// ---------- WEEK TABS ----------
-
-
-// ---------- METRICS ----------
-
-
-
-// ---------- CATEGORY TABLE ----------

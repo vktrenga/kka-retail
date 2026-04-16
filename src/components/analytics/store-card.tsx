@@ -1,34 +1,49 @@
-import { Mode, Store } from "@/types/analytics";
+'use client'; // make it a client component
+
+import { Mode } from "@/types/analytics";
 import { MetricsRow } from "./matrics-rows";
-import { WeekTabs } from "./week-tabs";
 import { DayTabs } from "./days-tabs";
 import { CategoryTable } from "./category-table";
+import { ScratchCardDataTable } from "./scratch-card-data-table";
 
 export function StoreCard({
-  store,
+  storeData,
   index,
   activeStores,
   setActiveStores,
   activeIndex,
   setActiveIndex,
-  visibleCount,
-  setVisibleCount,
-  format,
   mode,
+  storeList,
 }: {
-  store: Store;
+  storeData: any;
   index: number;
   activeStores: number[];
   setActiveStores: React.Dispatch<React.SetStateAction<number[]>>;
-  activeIndex: number | null;
-  setActiveIndex: React.Dispatch<React.SetStateAction<number | null>>;
-  visibleCount: number;
-  setVisibleCount: React.Dispatch<React.SetStateAction<number>>;
-  format: (n: number) => string;
+  activeIndex: string | null;
+  setActiveIndex: (value: string | null) => void;
   mode: Mode;
+  storeList: any[];
 }) {
   const isOpen = activeStores.includes(index);
 
+  // Find store name from storeList
+  const store = storeList.find((store) => store._id === storeData.store);
+  const storeName = store?.name || "Unknown Store";
+
+  const modeKeys = Object.keys(storeData.data).filter((key) => key !== "all");
+
+  const selected =
+    activeIndex !== null
+      ? storeData?.data?.[activeIndex]
+      : storeData?.data?.all;
+
+  const currentStoreData = selected?.payment_summary || [];
+  const currentModeCategory = selected?.sales_summary || [];
+  const currentModeOtherCetegroy =
+    selected?.exclusive_departments || [];
+  const scratchCardData =
+    selected?.scratch_card_data || [];
   return (
     <div className="bg-white rounded-xl border shadow-sm">
       <div
@@ -42,47 +57,38 @@ export function StoreCard({
         }
       >
         <div className="flex justify-between">
-          <h2 className="font-medium">{store.storeName}</h2>
-          <span className="text-xs text-gray-400">
-            {isOpen ? "▲" : "▼"}
-          </span>
+          <h2 className="font-medium">{storeName}</h2>
+          <span className="text-xs text-gray-400">{isOpen ? "▲" : "▼"}</span>
         </div>
 
-        <MetricsRow store={store} format={format} />
+        <MetricsRow currentStoreData={currentStoreData} />
       </div>
 
       {isOpen && (
         <div className="p-4 space-y-4">
-          {mode === "week" && (
-            <WeekTabs
-              weeks={store.weeks}
-              activeIndex={activeIndex}
-              setActiveIndex={setActiveIndex}
-              setVisibleCount={setVisibleCount}
-              format={format}
+          <DayTabs
+            activeIndex={activeIndex}
+            setActiveIndex={setActiveIndex}
+            modeKeys={modeKeys}
+          />
+
+          <MetricsRow currentStoreData={currentStoreData} />
+
+          <div className="grid md:grid-cols-2 gap-4">
+            <CategoryTable
+              title="Department Data"
+              categories={currentModeCategory}
             />
-          )}
-
-          {mode === "day" && (
-            <DayTabs
-              activeIndex={activeIndex}
-              setActiveIndex={setActiveIndex}
-              setVisibleCount={setVisibleCount}
+            <CategoryTable
+              title="Exclusive Department Data"
+              categories={currentModeOtherCetegroy}
             />
-          )}
 
-          {activeIndex !== null && (
-            <>
-              <MetricsRow store={store.weeks[0]} format={format} />
-
-              <CategoryTable
-                categories={store.weeks[0].categories}
-                visibleCount={visibleCount}
-                setVisibleCount={setVisibleCount}
-                format={format}
-              />
-            </>
-          )}
+            <ScratchCardDataTable
+              title="Scratch Card Data"
+              scratchCardData={scratchCardData}
+            />
+          </div>
         </div>
       )}
     </div>

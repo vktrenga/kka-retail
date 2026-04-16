@@ -1,4 +1,8 @@
+import { useState } from "react";
 import { Mode } from "@/types/analytics";
+
+
+
 
 export function Header({
   mode,
@@ -7,13 +11,21 @@ export function Header({
   mode: Mode;
   setMode: (m: Mode) => void;
 }) {
-  return (
-    <div className="flex justify-between items-center">
-      <h1 className="text-2xl font-semibold text-gray-800">
-        Retail Analytics
-      </h1>
+  const [selectedStores, setSelectedStores] = useState<number[]>([]);
 
-      <div className="flex bg-white border rounded-xl p-1 shadow-sm">
+  const toggleStore = (id: number) => {
+    setSelectedStores((prev) =>
+      prev.includes(id) ? prev.filter((s) => s !== id) : [...prev, id]
+    );
+  };
+
+  return (
+    <div className="flex justify-between items-center w-full space-x-6">
+      {/* Title */}
+      <h1 className="text-2xl font-semibold text-gray-800">Retail Analytics</h1>
+
+      {/* Mode Buttons */}
+      <div className="flex bg-white border rounded-xl p-1 shadow-sm space-x-2">
         {["day", "week", "month"].map((m) => (
           <button
             key={m}
@@ -28,6 +40,9 @@ export function Header({
           </button>
         ))}
       </div>
+
+      {/* Store Dropdown */}
+      
     </div>
   );
 }

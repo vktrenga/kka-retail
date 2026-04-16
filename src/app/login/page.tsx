@@ -2,17 +2,26 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { login } from "@/api/login";
 
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleLogin = () => {
-    if (email === "admin" && password === "admin") {
+
+  const handleLogin = async () => {
+    setLoading(true);
+    try {
+      const res= await login({email, password});
+      console.log("res.data.token",res.data.data.token)
+      console.log("Login success");
       router.push("/");
-    } else {
-      alert("Invalid credentials");
+    } catch (e) {
+      console.log("Login failed");
+    } finally {
+      setLoading(false);
     }
   };
 

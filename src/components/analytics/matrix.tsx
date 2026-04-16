@@ -6,9 +6,9 @@ export function Metric({
   value: string;
 }) {
   return (
-    <div className="bg-gray-50 border rounded-lg p-3">
-      <div className="text-xs text-gray-500">{label}</div>
-      <div className="font-semibold">{value}</div>
+    <div className="bg-gray-50 border rounded-md p-2">
+      <div className="text-[10px] text-gray-500 truncate">{label}</div>
+      <div className="text-sm font-semibold">{Number(value).toFixed(2)}</div>
     </div>
   );
 }

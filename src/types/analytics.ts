@@ -1,8 +1,8 @@
 // ---------- TYPES ----------
 export type Category = {
-  category: string;
+  name: string;
   qty: number;
-  total: number;
+  amount: number;
 };
 
 export type Period = {
@@ -28,11 +28,12 @@ export type Store = {
 export type Mode = "day" | "week" | "month";
 
 export type FiltersType = {
-  from: string;
-  to: string;
+  fromDate: string;
+  toDate: string;
   month: string;
   year: string;
-  months: string[];
+  mode:string;
+  stores: string[];
 };
 
 export const PAGE_SIZE = 40;
