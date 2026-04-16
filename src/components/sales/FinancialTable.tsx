@@ -1,11 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { toNumber } from "@/utils/commonTypes";
+import { CategoryRow } from "@/types/analytics";
 
-type CategoryRow = {
-  name: string;
-  amount: number;
-};
 
 type DailyFinanceDataType = {
   cashandCard: number;
@@ -23,8 +21,6 @@ type Props = {
   onVerifyChange: (key: string, value: boolean) => void;
 };
 
-// ✅ Safe number helper
-const toNumber = (val: any) => Number(val || 0);
 
 export const FinancialTable = ({
   data,

@@ -1,24 +1,15 @@
-import { useMemo, useCallback } from "react";
 
-type CategoryRow = {
-  name: string;
-  qty: number;
-  actual_qty?: number;
-  qty_diff?: number;
-  amount: number;
-  actual_amount?: number;
-  diff_amount?: number;
-};
+import { useMemo, useCallback } from "react";
+import { toNumber } from "@/utils/commonTypes";
+import type { CategoryRow, OtherCategoryRow } from "@/types/analytics";
 
 type Props = {
-  data: CategoryRow[];
+  data: OtherCategoryRow[];
   verification: Record<string, boolean>;
-  onOtherCategoryUpdate: (data: CategoryRow[]) => void;
+  onOtherCategoryUpdate: (data: OtherCategoryRow[]) => void;
   onVerifyChange: (key: string, value: boolean) => void;
 };
 
-// ✅ Helpers
-const toNumber = (val: unknown) => Number(val || 0);
 
 const round = (num: number) =>
   Math.round((num + Number.EPSILON) * 100) / 100;
@@ -46,7 +37,7 @@ export const OtherCategoryTable = ({
   ];
 
   // ✅ Core Calculation
-  const calculateRow = useCallback((row: CategoryRow): CategoryRow => {
+  const calculateRow = useCallback((row: OtherCategoryRow): OtherCategoryRow => {
     const actualQty = toNumber(row.actual_qty);
     const actualAmount = toNumber(row.actual_amount);
 
@@ -59,7 +50,7 @@ export const OtherCategoryTable = ({
 
   // ✅ Generic updater (reusable)
   const updateRow = useCallback(
-    (index: number, updates: Partial<CategoryRow>) => {
+    (index: number, updates: Partial<OtherCategoryRow>) => {
       const updated = data.map((row, i) =>
         i === index ? calculateRow({ ...row, ...updates }) : row
       );

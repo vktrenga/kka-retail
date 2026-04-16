@@ -6,6 +6,13 @@ import { DayTabs } from "./days-tabs";
 import { CategoryTable } from "./category-table";
 import { ScratchCardDataTable } from "./scratch-card-data-table";
 
+import type { Store } from "@/types/analytics";
+
+type StoreData = {
+  store: string;
+  data: Record<string, any>;
+};
+
 export function StoreCard({
   storeData,
   index,
@@ -16,19 +23,19 @@ export function StoreCard({
   mode,
   storeList,
 }: {
-  storeData: any;
+  storeData: StoreData;
   index: number;
   activeStores: number[];
   setActiveStores: React.Dispatch<React.SetStateAction<number[]>>;
   activeIndex: string | null;
   setActiveIndex: (value: string | null) => void;
   mode: Mode;
-  storeList: any[];
+  storeList: Store[];
 }) {
   const isOpen = activeStores.includes(index);
 
   // Find store name from storeList
-  const store = storeList.find((store) => store._id === storeData.store);
+  const store: any = storeList.find((store: any) => store._id === storeData.store);
   const storeName = store?.name || "Unknown Store";
 
   const modeKeys = Object.keys(storeData.data).filter((key) => key !== "all");

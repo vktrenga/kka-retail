@@ -31,8 +31,7 @@ const createEmptyRow = (): Row => ({
   ref: "",
 });
 
-// ✅ Safe number parser
-const toNumber = (val: any) => Number(val || 0);
+import { toNumber } from "@/utils/commonTypes";
 
 // ✅ Round helper
 const round = (num: number) =>

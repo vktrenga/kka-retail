@@ -1,22 +1,28 @@
 "use client";
 
 import { useMemo, useState } from "react";
+type TableFilter = {
+  fromDate?: string;
+  toDate?: string;
+  store?: string;
+};
+
 export function DynamicTable<T extends { id: number | string }>({
   data = [],
   columns = [],
   filterData,
   isHeaderTotal= false
 }: TableProps<T>): import("react/jsx-runtime").JSX.Element {
-  const [filters, setFilters] = useState<any>({});
-  const [draft, setDraft] = useState<any>({});
+  const [filters, setFilters] = useState<TableFilter>({});
+  const [draft, setDraft] = useState<TableFilter>({});
   const [sortKey, setSortKey] = useState<string>(
     columns.length ? String(columns[0].key) : ""
   );
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
 
-  const isValidDate = (val: any) => {
+  const isValidDate = (val: unknown) => {
     if (!val) return false;
-    const d = new Date(val);
+    const d = new Date(val as string);
     return !isNaN(d.getTime());
   };
 
@@ -28,8 +34,8 @@ export function DynamicTable<T extends { id: number | string }>({
 
   const uniqueStores = useMemo(() => {
     const set = new Set<string>();
-    data.forEach((row: any) => {
-      if (row?.store) set.add(row.store);
+    data.forEach((row) => {
+      if ((row as any)?.store) set.add((row as any).store);
     });
     return Array.from(set);
   }, [data]);
@@ -37,28 +43,24 @@ export function DynamicTable<T extends { id: number | string }>({
   const processed = useMemo(() => {
     let filtered = [...data];
 
-    // if (filtered.store) {
-    //   filtered = filtered.filter((row: any) => row?.store === filters.store);
-    // }
-
-    if (filters.fromDate) {
-      filtered = filtered.filter((row: any) => {
-        if (!isValidDate(row?.date)) return true;
-        return new Date(row.date) >= new Date(filters.fromDate);
+    if ((filters as any).fromDate) {
+      filtered = filtered.filter((row) => {
+        if (!isValidDate((row as any)?.date)) return true;
+        return new Date((row as any).date) >= new Date((filters as any).fromDate);
       });
     }
 
-    if (filters.toDate) {
-      filtered = filtered.filter((row: any) => {
-        if (!isValidDate(row?.date)) return true;
-        return new Date(row.date) <= new Date(filters.toDate);
+    if ((filters as any).toDate) {
+      filtered = filtered.filter((row) => {
+        if (!isValidDate((row as any)?.date)) return true;
+        return new Date((row as any).date) <= new Date((filters as any).toDate);
       });
     }
 
     if (sortKey) {
-      filtered.sort((a: any, b: any) => {
-        const aVal = a?.[sortKey];
-        const bVal = b?.[sortKey];
+      filtered.sort((a, b) => {
+        const aVal = (a as any)?.[sortKey];
+        const bVal = (b as any)?.[sortKey];
 
         if (typeof aVal === "number" && typeof bVal === "number") {
           return sortOrder === "asc" ? aVal - bVal : bVal - aVal;
@@ -75,10 +77,10 @@ export function DynamicTable<T extends { id: number | string }>({
 
   const totals = useMemo(() => {
     return processed.reduce(
-      (acc: any, row: any) => {
-        if (typeof row?.qty === "number") acc.qty += row.qty;
-        if (typeof row?.qty === "number" && typeof row?.price === "number") {
-          acc.amount += row.qty * row.price;
+      (acc: { qty: number; amount: number }, row) => {
+        if (typeof (row as any)?.qty === "number") acc.qty += (row as any).qty;
+        if (typeof (row as any)?.qty === "number" && typeof (row as any)?.price === "number") {
+          acc.amount += (row as any).qty * (row as any).price;
         }
         return acc;
       },
@@ -100,12 +102,12 @@ export function DynamicTable<T extends { id: number | string }>({
       {/* Filters */}
       <div className="grid grid-cols-4 gap-4">
         <select
-          value={draft.store || ""}
+          value={""}
           onChange={(e) => setDraft({ ...draft, store: e.target.value })}
           className="border px-2 py-1"
         >
           <option value="">All Stores</option>
-          {filterData.storeList.map((store) => (
+          {filterData.storeList.map((store:any) => (
             <option key={store._id} value={store._id}>
               {store.name}
             </option>

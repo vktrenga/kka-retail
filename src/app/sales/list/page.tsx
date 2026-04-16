@@ -5,8 +5,14 @@ import { DynamicTable } from "@/components/table/dynamicTable";
 import { useEffect, useMemo, useState } from "react";
 import { storeServie } from "@/api/store";
 
+type ImportedListData = {
+  data?: {
+    items?: any[];
+  };
+};
+
 export default function Page() {
-  const [importedListData, setImportedListData] = useState([]);
+  const [importedListData, setImportedListData] = useState<ImportedListData | null>(null);
   useEffect(() => {
   const listData = async () => {
     try {
@@ -20,7 +26,8 @@ export default function Page() {
 },[])
 
   const [data, setData] = useState<Row[]>([]);
-    const [storeList, setStoreList] = useState<[]>([]);
+  type Store = { _id: string; name: string };
+  const [storeList, setStoreList] = useState<Store[]>([]);
     
     useEffect(() => {
       const fetchStores = async () => {

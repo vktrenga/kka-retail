@@ -1,11 +1,13 @@
-import { Category } from "@/types/analytics";
+import { toNumber } from "@/utils/commonTypes";
+
+type ScratchCardData = { name: string; open: number; close: number; amount: number };
 
 export function ScratchCardDataTable({
   title,
   scratchCardData,
 }: {
   title: string;
-  scratchCardData: any[];
+  scratchCardData: ScratchCardData[];
 }) {
   // ✅ Calculate totals
 
@@ -36,9 +38,9 @@ export function ScratchCardDataTable({
             {scratchCardData?.map((c, idx) => (
               <tr key={idx} className="border-t hover:bg-gray-50">
                 <td className="p-3">{c.name}</td>
-                <td className="p-3">{Number(c.open).toFixed(2)}</td>
-                <td className="p-3">{Number(c.close).toFixed(2)}</td>
-                <td className="p-3">{Number(c.amount).toFixed(2)}</td>
+                <td className="p-3">{toNumber(c.open).toFixed(2)}</td>
+                <td className="p-3">{toNumber(c.close).toFixed(2)}</td>
+                <td className="p-3">{toNumber(c.amount).toFixed(2)}</td>
               </tr>
             ))}
           </tbody>

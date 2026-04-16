@@ -1,4 +1,5 @@
 import { Category } from "@/types/analytics";
+import { toNumber } from "@/utils/commonTypes";
 
 export function CategoryTable({
   title,
@@ -8,9 +9,9 @@ export function CategoryTable({
   categories: Category[];
 }) {
   // ✅ Calculate totals
-  const totalQty = categories?.reduce((sum, c) => sum + Number(c.qty || 0), 0);
+  const totalQty = categories?.reduce((sum, c) => sum + toNumber(c.qty), 0);
   const totalAmount = categories?.reduce(
-    (sum, c) => sum + Number(c.amount || 0),
+    (sum, c) => sum + toNumber(c.amount),
     0
   );
 
@@ -39,8 +40,8 @@ export function CategoryTable({
             {categories?.map((c, idx) => (
               <tr key={idx} className="border-t hover:bg-gray-50">
                 <td className="p-3">{c.name}</td>
-                <td className="p-3">{Number(c.qty).toFixed(2)}</td>
-                <td className="p-3">{Number(c.amount).toFixed(2)}</td>
+                <td className="p-3">{toNumber(c.qty).toFixed(2)}</td>
+                <td className="p-3">{toNumber(c.amount).toFixed(2)}</td>
               </tr>
             ))}
           </tbody>

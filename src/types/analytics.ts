@@ -38,3 +38,19 @@ export type FiltersType = {
 
 export const PAGE_SIZE = 40;
 
+
+export type CategoryRow = {
+  name: string;
+  amount: number;
+  qty?: number;
+};
+
+export type OtherCategoryRow = {
+  name: string;
+  amount: number;
+  actual_qty: number;
+  actual_amount: number;
+  qty_diff: number;
+  diff_amount: number;
+  qty: number;
+};

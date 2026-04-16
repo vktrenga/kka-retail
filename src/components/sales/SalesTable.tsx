@@ -1,10 +1,7 @@
-import { useMemo } from "react";
 
-type CategoryRow = {
-  name: string;
-  qty: number;
-  amount: number;
-};
+import { useMemo } from "react";
+import { toNumber } from "@/utils/commonTypes";
+import type { CategoryRow } from "@/types/analytics";
 
 type Props = {
   data: CategoryRow[];
@@ -12,8 +9,6 @@ type Props = {
   onVerifyChange: (key: string, value: boolean) => void;
 };
 
-// ✅ Helpers
-const toNumber = (val: any) => Number(val || 0);
 
 const formatCurrency = (num: number) =>
   `₹${num.toLocaleString("en-IN", {
