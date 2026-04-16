@@ -3,11 +3,8 @@ reviews:
     enabled: true
   request_changes_workflow:
     enabled: true
-  pre_merge_checks:
-    custom_checks:
-      - name: security
-        description: "Check for security vulnerabilities and best practices"
-      - name: performance
-        description: "Evaluate performance implications and optimizations"
-      - name: readability
-        description: "Assess code readability and maintainability"
+
+rules:
+  - name: security
+  - name: performance
+  - name: readability

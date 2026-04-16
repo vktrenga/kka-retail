@@ -19,3 +19,4 @@ type TableProps<T> = {
   filterData:any;
   isHeaderTotal:Boolean;
 };
+

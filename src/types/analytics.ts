@@ -37,3 +37,4 @@ export type FiltersType = {
 };
 
 export const PAGE_SIZE = 40;
+

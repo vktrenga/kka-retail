@@ -64,3 +64,4 @@ export const Navbar: React.FC<NavbarProps> = ({ open, setOpen }) => {
     </header>
   );
 };
+
