@@ -1,6 +1,8 @@
 reviews:
-  auto_review: true
-  request_changes: true
+  auto_review:
+    enabled: true
+  request_changes_workflow:
+    enabled: true
 
 rules:
   - name: security
