@@ -27,6 +27,7 @@ type Props = {
   verification: Record<string, boolean>;
   OnFinancialDataUpdate: (data: DailyFinanceDataType) => void;
   onVerifyChange: (key: string, value: boolean) => void;
+  ApprovalComment: string;
   readOnly?: boolean; // Added readOnly prop
 };
 
@@ -36,6 +37,7 @@ export const FinancialTable = ({
   verification,
   OnFinancialDataUpdate,
   onVerifyChange,
+  ApprovalComment,
   readOnly = false, // Default value for readOnly
 }: Props) => {
   const [dailyFinanceData, setDailyFinance] =
@@ -48,7 +50,7 @@ export const FinancialTable = ({
       difference: 0,
     });
 
-  const [approverComment, setApproverComment] = useState("");
+  const [approverComment, setApproverComment] = useState(ApprovalComment || "");
 
   const displayData = data || [];
 
@@ -310,7 +312,7 @@ export const FinancialTable = ({
         </div>
       )}
 
-      {pathname.includes("unapproved") && (
+      {(pathname.includes("unapproved") || pathname.includes("view")) && (
         <div className="mt-4 flex flex-col gap-2 px-3 pb-3">
           <div className="flex flex-col gap-2">
             <label className="text-sm font-medium text-gray-600">
@@ -326,6 +328,7 @@ export const FinancialTable = ({
           </div>
           <button
             onClick={handleApprove}
+            disabled={pathname.includes("unapproved") ? false : true} // Disable button if readOnly is true
             className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 disabled:bg-gray-300 w-1/2"
           >
             Approve

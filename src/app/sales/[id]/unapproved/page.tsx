@@ -75,6 +75,7 @@ export default function EditSalesPage() {
             verification={logic.verification}
             OnFinancialDataUpdate={(data) => logic.updateGroup("daily_finance_data", data)}
             onVerifyChange={() => logic.handleVerifyChange("financial", true)}
+            ApprovalComment={""} 
             readOnly={isReadOnly} // Pass readOnly prop
           />
         );

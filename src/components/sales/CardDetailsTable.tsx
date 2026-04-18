@@ -236,9 +236,9 @@ export const CardDetailsTable = ({
           <div className="flex items-center gap-2">
             <input
               type="checkbox"
-              checked={verification["cardDetails"] || false}
+              checked={verification["card"] || false}
               onChange={(e) =>
-                onVerifyChange("cardDetails", e.target.checked)
+                onVerifyChange("card", e.target.checked)
               }
             />
             <span className="text-sm">

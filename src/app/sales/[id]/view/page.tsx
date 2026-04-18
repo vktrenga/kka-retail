@@ -75,6 +75,7 @@ export default function EditSalesPage() {
             verification={logic.verification}
             OnFinancialDataUpdate={(data) => logic.updateGroup("daily_finance_data", data)}
             onVerifyChange={() => logic.handleVerifyChange("financial", true)}
+            ApprovalComment={initialData?.approval_comment || ""} // Pass approval comment
             readOnly={isReadOnly} // Pass readOnly prop
           />
         );
@@ -90,7 +91,7 @@ export default function EditSalesPage() {
     <div className="space-y-6">
       <OrderTabs activeTab={logic.activeTab} setActiveTab={logic.setActiveTab} />
       <div className="mt-4">{renderTable()}</div>
-      {initialData?.status === "Draft" && (
+      {params?.id && params?.id.includes("unapproved") && (
         <div className="mt-4">
           <button
             disabled={!logic.isAllVerified}

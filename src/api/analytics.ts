@@ -6,4 +6,3 @@ export const fetchReport = async (filter: any) => {
   return res.data;
 };
 
-

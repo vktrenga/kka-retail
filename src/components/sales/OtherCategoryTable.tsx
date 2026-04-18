@@ -68,7 +68,7 @@ export const OtherCategoryTable = ({
   const totals = useMemo(() => {
     return data.reduce(
       (acc, item) => {
-        acc.qty += item.qty;
+        acc.qty += toNumber(item.qty);
         acc.amount += item.amount;
         acc.qty_diff += toNumber(item.qty_diff);
         acc.diff_amount += toNumber(item.diff_amount);

@@ -8,7 +8,6 @@ import { OtherCategoryTable } from "@/components/sales/OtherCategoryTable";
 import { CardDetailsTable } from "@/components/sales/CardDetailsTable";
 import { FinancialTable } from "@/components/sales/FinancialTable";
 import { updateSalesData } from "@/api/import";
-// import { useRouter } from "next/navigation";
 import { showNotification } from "@/utils/notifications";
 
 // ✅ Types
@@ -80,9 +79,8 @@ export default function OrdersPage() {
     (key: keyof Verification, value: boolean) => {
       setVerification((prev) => ({
         ...prev,
-        [key]: value,
+        [key]: value, // Set the value explicitly
       }));
-
     },
     []
   );
@@ -97,9 +95,7 @@ export default function OrdersPage() {
           <SalesTable
             data={groups.sales_summary || []}
             verification={verification}
-            onVerifyChange={() =>
-              handleVerifyChange("category", true)
-            }
+            onVerifyChange={(data) => handleVerifyChange("category", Boolean(data))}
           />
         );
 
@@ -111,9 +107,7 @@ export default function OrdersPage() {
             onOtherCategoryUpdate={(data) =>
               updateGroup("exclusive_departments", data)
             }
-            onVerifyChange={() =>
-              handleVerifyChange("otherCategory", true)
-            }
+            onVerifyChange={(data) => handleVerifyChange("otherCategory", Boolean(data))}
           />
         );
 
@@ -125,9 +119,7 @@ export default function OrdersPage() {
             OnPaymentSummaryUpdate={(data) =>
               updateGroup("scratch_card_data", data)
             }
-            onVerifyChange={() =>
-              handleVerifyChange("card", true)
-            }
+            onVerifyChange={(data) => handleVerifyChange("card", Boolean(data))}
           />
         );
 
@@ -140,9 +132,9 @@ export default function OrdersPage() {
             OnFinancialDataUpdate={(data) =>
               updateGroup("daily_finance_data", data) // ✅ auto-create
             }
-            onVerifyChange={() =>
-              handleVerifyChange("financial", true)
-            }
+            onVerifyChange={(data) => handleVerifyChange("financial", Boolean(data))}
+            ApprovalComment={""} 
+
           />
         );
 
@@ -150,7 +142,6 @@ export default function OrdersPage() {
         return null;
     }
   };
-
 
   return (
     <div className="space-y-6">
@@ -160,7 +151,10 @@ export default function OrdersPage() {
         <div className="bg-white p-6 rounded-xl shadow border max-w-lg">
           <OrderForm
             onSubmit={() => setSubmitted(true)}
-            onSuccess={(data) => setAllData(data)}
+            onSuccess={(data) => {
+              setAllData(data);
+              setSubmitted(true); // Ensure submitted is set to true
+            }}
           />
         </div>
       )}

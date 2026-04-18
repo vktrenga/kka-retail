@@ -41,8 +41,8 @@ export default function ReportListPage() {
         const store = storeList.find((s) => s._id === item.store);
         return {
           id: item._id,
-          store: store?.name || "Unknown",
           date: item.date,
+          store: store?.name || "Unknown",
           cashandCard: item.groups?.daily_finance_data?.cashandCard || 0,
           actualCard: item.groups?.daily_finance_data?.actualCard || 0,
           actualCash: item.groups?.daily_finance_data?.actualCash || 0,
@@ -50,6 +50,7 @@ export default function ReportListPage() {
           bankEntry: item.groups?.daily_finance_data?.bankingEntry || 0,
           difference: item.groups?.daily_finance_data?.difference || 0,
           status: item.status,
+          ApprovalComment: item.approval_comment || "",
           actions: [
             { url: `/sales/${item._id}/view`, label: "View" },
           ],
@@ -80,14 +81,15 @@ export default function ReportListPage() {
   }, []);
 
   const columns = [
-    { key: "store", label: "Store" },
     { key: "date", label: "Date" },
+    { key: "store", label: "Store" },
     { key: "cashandCard", label: "Card (inc CB & CBC)" },
     { key: "actualCard", label: "Actual Card" },
     { key: "actualCash", label: "Actual Cash" },
     { key: "manualPayout", label: "Manual payout" },
     { key: "bankEntry", label: "Bank Entry" },
     { key: "difference", label: "Difference" },
+    { key: "ApprovalComment", label: "Approval Comment" },
     { key: "actions", label: "Actions" },
   ];
 

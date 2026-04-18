@@ -9,27 +9,12 @@ import { CardDetailsTable } from "@/components/sales/CardDetailsTable";
 import { FinancialTable } from "@/components/sales/FinancialTable";
 import { useSalesPageLogic } from "../../useSalesPageLogic";
 import { getSalesDataById } from "@/api/import";
+import { useFetchSalesData } from "@/hooks/useFetchSalesData";
 
 export default function EditSalesPage() {
   const params = useParams();
   const id = params?.id as string;
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [initialData, setInitialData] = useState<any>(null);
-
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        const res = await getSalesDataById(id);
-        setInitialData(res.data);
-      } catch (err) {
-        setError("Failed to load data");
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchData();
-  }, [id]);
+  const { loading, error, initialData } = useFetchSalesData(id);
 
   const logic = useSalesPageLogic(initialData);
 
@@ -75,6 +60,7 @@ export default function EditSalesPage() {
             verification={logic.verification}
             OnFinancialDataUpdate={(data) => logic.updateGroup("daily_finance_data", data)}
             onVerifyChange={() => logic.handleVerifyChange("financial", true)}
+            ApprovalComment={""} 
             readOnly={isReadOnly} // Pass readOnly prop
           />
         );
@@ -83,24 +69,23 @@ export default function EditSalesPage() {
     }
   };
 
-  if (loading) return <div>Loading...</div>;
-  if (error) return <div className="text-red-500">{error}</div>;
-
   return (
-    <div className="space-y-6">
+    <div>
       <OrderTabs activeTab={logic.activeTab} setActiveTab={logic.setActiveTab} />
-      <div className="mt-4">{renderTable()}</div>
-      {initialData?.status === "Draft" && (
-        <div className="mt-4">
-          <button
-            disabled={!logic.isAllVerified}
-            onClick={logic.updateReport}
-            className={`px-4 py-2 rounded text-white ${logic.isAllVerified ? "bg-green-500 hover:bg-green-600" : "bg-gray-400 cursor-not-allowed"}`}
-          >
-            Save Changes
-          </button>
-        </div>
-      )}
+      {loading ? <p>Loading...</p> : error ? <p>{error}</p> : renderTable()}
+      <div className="mt-4">
+        <button
+          disabled={!logic.isAllVerified}
+          onClick={logic.updateReport}
+          className={`px-4 py-2 rounded text-white ${
+            logic.isAllVerified
+              ? "bg-green-500 hover:bg-green-600"
+              : "bg-gray-400 cursor-not-allowed"
+          }`}
+        >
+          Submit
+        </button>
+      </div>
     </div>
   );
 }
