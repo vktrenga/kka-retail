@@ -16,7 +16,11 @@ type Column<T> = {
 type TableProps<T> = {
   data?: T[];
   columns?: Column<T>[];
-  filterData:any;
   isHeaderTotal:Boolean;
 };
 
+type TableFilter = {
+  fromDate?: string;
+  toDate?: string;
+  store?: string;
+};

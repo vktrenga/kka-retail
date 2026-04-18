@@ -14,11 +14,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ open, setOpen }) => {
   const menuItems = [
     { name: "Dashboard", path: "/" },
     { name: "Sales Data Upload", path: "/sales" },
+    { name: "Drafted Sales Data", path: "/sales/list" },
+    { name: "Unapproved Sales Data", path: "/sales/unapproved-list" },
+    { name: "Daily Report", path: "/report/list" },
     { name: "Sales Report", path: "/analytics" },
     { name: "User", path: "/user" },
     { name: "Store", path: "/store" },
-
-    // { name: "Customers", path: "/customers" },
   ];
 
   return (

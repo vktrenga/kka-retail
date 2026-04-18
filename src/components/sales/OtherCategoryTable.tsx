@@ -1,15 +1,15 @@
-
 import { useMemo, useCallback } from "react";
 import { toNumber } from "@/utils/commonTypes";
 import type { CategoryRow, OtherCategoryRow } from "@/types/analytics";
+import { usePathname } from "next/navigation";
 
 type Props = {
   data: OtherCategoryRow[];
   verification: Record<string, boolean>;
   onOtherCategoryUpdate: (data: OtherCategoryRow[]) => void;
   onVerifyChange: (key: string, value: boolean) => void;
+  readOnly?: boolean; // Added readOnly prop
 };
-
 
 const round = (num: number) =>
   Math.round((num + Number.EPSILON) * 100) / 100;
@@ -25,7 +25,11 @@ export const OtherCategoryTable = ({
   verification,
   onOtherCategoryUpdate,
   onVerifyChange,
+  readOnly = false, // Default value for readOnly
 }: Props) => {
+  const pathname = usePathname();
+  const isViewMode = pathname.includes("view") || pathname.includes("unapproved");
+
   const columns = [
     "Category",
     "Qty",
@@ -113,6 +117,7 @@ export const OtherCategoryTable = ({
                         })
                       }
                       className="w-full border px-2 py-1"
+                      disabled={readOnly} // Disable input if readOnly is true
                     />
                   </td>
 
@@ -142,6 +147,7 @@ export const OtherCategoryTable = ({
                         })
                       }
                       className="w-full border px-2 py-1"
+                      disabled={readOnly} // Disable input if readOnly is true
                     />
                   </td>
 
@@ -180,21 +186,23 @@ export const OtherCategoryTable = ({
       </div>
 
       {/* Verification */}
-      <div className="mt-4 flex justify-between items-center px-3 pb-3">
-        <div className="flex items-center gap-2">
-          <input
-            type="checkbox"
-            checked={verification["otherCategory"] || false}
-            onChange={(e) =>
-              onVerifyChange("otherCategory", e.target.checked)
-            }
-          />
-          <span className="text-sm">
-            All data has been verified and is consistent with the
-            original records
-          </span>
+      {!isViewMode && !readOnly && ( // Conditionally render checkbox
+        <div className="mt-4 flex justify-between items-center px-3 pb-3">
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              checked={verification["otherCategory"] || false}
+              onChange={(e) =>
+                onVerifyChange("otherCategory", e.target.checked)
+              }
+            />
+            <span className="text-sm">
+              All data has been verified and is consistent with the
+              original records
+            </span>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };

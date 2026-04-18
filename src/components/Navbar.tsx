@@ -2,7 +2,7 @@
 
 import { Menu, X, Moon, Sun, LogOut } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 
 interface NavbarProps {
   open: boolean;
@@ -12,6 +12,32 @@ interface NavbarProps {
 export const Navbar: React.FC<NavbarProps> = ({ open, setOpen }) => {
   const [dark, setDark] = useState(false);
   const router = useRouter();
+  const pathname = usePathname();
+
+  const getPageTitle = () => {
+    switch (pathname) {
+      case "/analytics":
+        return "Analytics";
+      case "/sales/list":
+        return "Drafted Sales Data";
+      case "/sales/unapproved-list":
+        return "Unapproved Sales Data";
+      case "/report/list":
+        return "Daily Report";
+      case "/user":
+        return "User Management";
+      default:
+        return "Dashboard";
+    }
+  };
+
+  const getPageBackground = () => {
+    return "bg-blue-50"; // Unified background for all pages
+  };
+
+  const getContentBackground = () => {
+    return "bg-blue-50"; // Unified content background for all pages
+  };
 
   useEffect(() => {
     if (dark) {
@@ -27,41 +53,45 @@ export const Navbar: React.FC<NavbarProps> = ({ open, setOpen }) => {
   };
 
   return (
-    <header className="flex items-center justify-between bg-white dark:bg-gray-800 border-b px-4 py-3 sticky top-0 z-20">
-      
-      {/* Left */}
-      <div className="flex items-center gap-3">
-        <button className="md:hidden p-2" onClick={() => setOpen(!open)}>
-          {open ? <X /> : <Menu />}
-        </button>
-        <h1 className="text-lg font-semibold dark:text-white">Dashboard</h1>
-      </div>
-
-      {/* Right */}
-      <div className="flex items-center gap-4">
+    <div className={getContentBackground()}>
+      <header
+        className={`flex items-center justify-between ${getPageBackground()} dark:bg-gray-800 border-b px-4 py-3 sticky top-0 z-20`}
+      >
         
-        {/* Dark Mode */}
-        {/* <button onClick={() => setDark(!dark)}>
-          {dark ? (
-            <Sun className="text-yellow-400" />
-          ) : (
-            <Moon className="dark:text-white" />
-          )}
-        </button> */}
+        {/* Left */}
+        <div className="flex items-center gap-3">
+          <button className="md:hidden p-2" onClick={() => setOpen(!open)}>
+            {open ? <X /> : <Menu />}
+          </button>
+          <h1 className="text-lg font-semibold dark:text-white">{getPageTitle()}</h1>
+        </div>
 
-        {/* Avatar */}
-        {/* <div className="w-8 h-8 bg-gray-300 rounded-full" /> */}
+        {/* Right */}
+        <div className="flex items-center gap-4">
+          
+          {/* Dark Mode */}
+          {/* <button onClick={() => setDark(!dark)}>
+            {dark ? (
+              <Sun className="text-yellow-400" />
+            ) : (
+              <Moon className="dark:text-white" />
+            )}
+          </button> */}
 
-        {/* Logout */}
-        <button
-          onClick={handleLogout}
-          className="p-2 rounded hover:bg-red-100 dark:hover:bg-red-900 transition"
-        >
-          <LogOut className="w-5 h-5 text-red-500" />
-        </button>
+          {/* Avatar */}
+          {/* <div className="w-8 h-8 bg-gray-300 rounded-full" /> */}
 
-      </div>
-    </header>
+          {/* Logout */}
+          <button
+            onClick={handleLogout}
+            className="p-2 rounded hover:bg-red-100 dark:hover:bg-red-900 transition"
+          >
+            <LogOut className="w-5 h-5 text-red-500" />
+          </button>
+
+        </div>
+      </header>
+    </div>
   );
 };
 

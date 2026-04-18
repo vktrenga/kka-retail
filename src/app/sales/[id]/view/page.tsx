@@ -1,0 +1,106 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { useRouter, useParams } from "next/navigation";
+import { OrderTabs } from "@/components/sales/OrderTabs";
+import { SalesTable } from "@/components/sales/SalesTable";
+import { OtherCategoryTable } from "@/components/sales/OtherCategoryTable";
+import { CardDetailsTable } from "@/components/sales/CardDetailsTable";
+import { FinancialTable } from "@/components/sales/FinancialTable";
+import { useSalesPageLogic } from "../../useSalesPageLogic";
+import { getSalesDataById } from "@/api/import";
+
+export default function EditSalesPage() {
+  const params = useParams();
+  const id = params?.id as string;
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [initialData, setInitialData] = useState<any>(null);
+
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const res = await getSalesDataById(id);
+        setInitialData(res.data);
+      } catch (err) {
+        setError("Failed to load data");
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchData();
+  }, [id]);
+
+  const logic = useSalesPageLogic(initialData);
+
+  const renderTable = () => {
+    const groups = logic?.excelData?.data?.groups || {};
+    const isReadOnly = initialData?.status !== "Draft"; // Determine if the page is read-only
+
+    switch (logic.activeTab) {
+      case "Sales":
+        return (
+          <SalesTable
+            data={groups.sales_summary || []}
+            verification={logic.verification}
+            onVerifyChange={() => logic.handleVerifyChange("category", true)}
+            readOnly={isReadOnly} // Pass readOnly prop
+          />
+        );
+      case "Other Category":
+        return (
+          <OtherCategoryTable
+            data={groups.exclusive_departments || []}
+            verification={logic.verification}
+            onOtherCategoryUpdate={(data) => logic.updateGroup("exclusive_departments", data)}
+            onVerifyChange={() => logic.handleVerifyChange("otherCategory", true)}
+            readOnly={isReadOnly} // Pass readOnly prop
+          />
+        );
+      case "Card Details":
+        return (
+          <CardDetailsTable
+            data={groups.scratch_card_data || []}
+            verification={logic.verification}
+            OnPaymentSummaryUpdate={(data) => logic.updateGroup("scratch_card_data", data)}
+            onVerifyChange={() => logic.handleVerifyChange("card", true)}
+            readOnly={isReadOnly} // Pass readOnly prop
+          />
+        );
+      case "Financial":
+        return (
+          <FinancialTable
+            data={ groups.payment_summary || []}
+            dailyFinanceRecordData={groups?.daily_finance_data || null}
+            verification={logic.verification}
+            OnFinancialDataUpdate={(data) => logic.updateGroup("daily_finance_data", data)}
+            onVerifyChange={() => logic.handleVerifyChange("financial", true)}
+            readOnly={isReadOnly} // Pass readOnly prop
+          />
+        );
+      default:
+        return null;
+    }
+  };
+
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div className="text-red-500">{error}</div>;
+
+  return (
+    <div className="space-y-6">
+      <OrderTabs activeTab={logic.activeTab} setActiveTab={logic.setActiveTab} />
+      <div className="mt-4">{renderTable()}</div>
+      {initialData?.status === "Draft" && (
+        <div className="mt-4">
+          <button
+            disabled={!logic.isAllVerified}
+            onClick={logic.updateReport}
+            className={`px-4 py-2 rounded text-white ${logic.isAllVerified ? "bg-green-500 hover:bg-green-600" : "bg-gray-400 cursor-not-allowed"}`}
+          >
+            Save Changes
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}

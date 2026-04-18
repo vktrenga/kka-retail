@@ -1,14 +1,14 @@
-
 import { useMemo } from "react";
 import { toNumber } from "@/utils/commonTypes";
 import type { CategoryRow } from "@/types/analytics";
+import { usePathname } from "next/navigation";
 
 type Props = {
   data: CategoryRow[];
   verification: Record<string, boolean>;
   onVerifyChange: (key: string, value: boolean) => void;
+  readOnly?: boolean; // Added readOnly prop
 };
-
 
 const formatCurrency = (num: number) =>
   `₹${num.toLocaleString("en-IN", {
@@ -20,9 +20,11 @@ export const SalesTable = ({
   data,
   verification,
   onVerifyChange,
+  readOnly = false, // Default value for readOnly
 }: Props) => {
   const columns = ["Category", "Qty", "Amount"];
-
+  const pathname = usePathname();
+  const isViewMode = pathname.includes("view") || pathname.includes("unapproved");
   // ✅ Totals (optimized)
   const totals = useMemo(() => {
     return data.reduce(
@@ -38,9 +40,7 @@ export const SalesTable = ({
   return (
     <div className="bg-white rounded-b-xl border shadow">
       {/* Title */}
-      <div className="p-4 font-semibold border-b">
-        Category Wise Sales
-      </div>
+      <div className="p-4 font-semibold border-b">Category Wise Sales</div>
 
       {/* Table */}
       <div className="max-h-[500px] overflow-auto">
@@ -60,20 +60,13 @@ export const SalesTable = ({
               data.map((row, i) => (
                 <tr key={i} className="hover:bg-blue-50">
                   <td className="p-3 border">{row.name}</td>
-                  <td className="p-3 border text-right">
-                    {row.qty}
-                  </td>
-                  <td className="p-3 border text-right">
-                    {formatCurrency(row.amount)}
-                  </td>
+                  <td className="p-3 border text-right">{row.qty}</td>
+                  <td className="p-3 border text-right">{formatCurrency(row.amount)}</td>
                 </tr>
               ))
             ) : (
               <tr>
-                <td
-                  colSpan={3}
-                  className="text-center p-4 text-gray-500"
-                >
+                <td colSpan={3} className="text-center p-4 text-gray-500">
                   No data available
                 </td>
               </tr>
@@ -84,7 +77,6 @@ export const SalesTable = ({
 
       {/* Footer */}
       <div className="sticky bottom-0 bg-gray-100 border-t p-3 flex flex-col gap-3">
-        
         {/* Totals */}
         <div className="flex justify-between font-medium">
           <span>Total Qty: {totals.qty}</span>
@@ -92,19 +84,21 @@ export const SalesTable = ({
         </div>
 
         {/* Verification */}
-        <div className="flex items-center gap-2">
-          <input
-            type="checkbox"
-            checked={verification["category"] || false}
-            onChange={(e) =>
-              onVerifyChange("category", e.target.checked)
-            }
-          />
-          <span className="text-sm">
-            All data has been verified and is consistent with the
-            original records
-          </span>
-        </div>
+        {!readOnly && ( // Conditionally render checkbox
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              checked={verification["category"] || false}
+              onChange={(e) =>
+                onVerifyChange("category", e.target.checked)
+              }
+            />
+            <span className="text-sm">
+              All data has been verified and is consistent with the original
+              records
+            </span>
+          </div>
+        )}
       </div>
     </div>
   );

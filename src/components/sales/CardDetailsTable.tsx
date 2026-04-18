@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
+import { usePathname } from "next/navigation";
 
 type Row = {
   name: string;
@@ -17,6 +18,7 @@ type Props = {
   verification: Record<string, boolean>;
   OnPaymentSummaryUpdate: (data: Row[]) => void;
   onVerifyChange: (key: string, value: boolean) => void;
+  readOnly?: boolean; // Added readOnly prop
 };
 
 // ✅ Default row template
@@ -42,13 +44,16 @@ export const CardDetailsTable = ({
   verification,
   OnPaymentSummaryUpdate,
   onVerifyChange,
+  readOnly = false, // Default value for readOnly
 }: Props) => {
   const [rows, setRows] = useState<Row[]>([]);
+  const pathname = usePathname();
+  const isViewMode = pathname.includes("view") || pathname.includes("unapproved");
 
   // ✅ Calculate row values
   const calculateRow = (row: Row): Row => {
-    const sales = row.close>0? Math.max(0, toNumber(row.open) - toNumber(row.close)):0;
-    const amount = row.close>0? round(sales * toNumber(row.price)):0;
+    const sales = row.close > 0 ? Math.max(0, toNumber(row.open) - toNumber(row.close)) : 0;
+    const amount = row.close > 0 ? round(sales * toNumber(row.price)) : 0;
 
     return { ...row, sales, amount };
   };
@@ -98,7 +103,7 @@ export const CardDetailsTable = ({
   const totals = useMemo(() => {
     return rows.reduce(
       (acc, row) => {
-        const sales = row.close >0 ?Math.max(0, row.open - row.close):0;
+        const sales = row.close > 0 ? Math.max(0, row.open - row.close) : 0;
         const amount = round(sales * row.price);
 
         acc.sales += sales;
@@ -136,6 +141,7 @@ export const CardDetailsTable = ({
                   value={row.name}
                   onChange={(e) => updateRow(i, "name", e.target.value)}
                   className="p-1 w-full"
+                  disabled={readOnly} // Disable input if readOnly is true
                 />
               </td>
 
@@ -146,6 +152,7 @@ export const CardDetailsTable = ({
                   value={row.price}
                   onChange={(e) => updateRow(i, "price", e.target.value)}
                   className="p-1 w-full"
+                  disabled={readOnly} // Disable input if readOnly is true
                 />
               </td>
 
@@ -156,6 +163,7 @@ export const CardDetailsTable = ({
                   value={row.open}
                   onChange={(e) => updateRow(i, "open", e.target.value)}
                   className="p-1 w-full"
+                  disabled={readOnly} // Disable input if readOnly is true
                 />
               </td>
 
@@ -166,6 +174,7 @@ export const CardDetailsTable = ({
                   value={row.close}
                   onChange={(e) => updateRow(i, "close", e.target.value)}
                   className="p-1 w-full"
+                  disabled={readOnly} // Disable input if readOnly is true
                 />
               </td>
 
@@ -186,24 +195,28 @@ export const CardDetailsTable = ({
                   value={row.issue}
                   onChange={(e) => updateRow(i, "issue", e.target.value)}
                   className="p-1 w-full"
+                  disabled={readOnly} // Disable input if readOnly is true
                 />
               </td>
 
               <td className="border">
                 <input
-                  value={row.ref}
+                  value={row.ref ?? ""} // Use an empty string if `row.ref` is null or undefined
                   onChange={(e) => updateRow(i, "ref", e.target.value)}
                   className="p-1 w-full"
+                  disabled={readOnly} // Disable input if readOnly is true
                 />
               </td>
 
               <td className="border text-center">
-                <button
-                  onClick={() => deleteRow(i)}
-                  className="text-red-500"
-                >
-                  Delete
-                </button>
+                {!readOnly && (
+                  <button
+                    onClick={() => deleteRow(i)}
+                    className="text-red-500"
+                  >
+                    Delete
+                  </button>
+                )}
               </td>
             </tr>
           ))}
@@ -218,25 +231,34 @@ export const CardDetailsTable = ({
       </div>
 
       {/* ✅ Footer */}
-      <div className="mt-4 flex justify-between items-center p-2">
-        <div className="flex items-center gap-2">
-          <input
-            type="checkbox"
-            checked={verification["card"] || false}
-            onChange={(e) => onVerifyChange("card", e.target.checked)}
-          />
-          <span className="text-sm">
-            All data has been verified and is consistent
-          </span>
+      {!isViewMode && !readOnly && (
+        <div className="mt-4 flex justify-between items-center px-3 pb-3">
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              checked={verification["cardDetails"] || false}
+              onChange={(e) =>
+                onVerifyChange("cardDetails", e.target.checked)
+              }
+            />
+            <span className="text-sm">
+              All data has been verified and is consistent with the
+              original records
+            </span>
+          </div>
         </div>
+      )}
 
-        <button
-          onClick={addRow}
-          className="bg-blue-500 text-white px-4 py-2 rounded"
-        >
-          + Add More
-        </button>
-      </div>
+      {!isViewMode && !readOnly && (
+        <div className="mt-4 flex justify-between items-center p-2">
+          <button
+            onClick={addRow}
+            className="bg-blue-500 text-white px-4 py-2 rounded"
+          >
+            + Add More
+          </button>
+        </div>
+      )}
     </div>
   );
 };

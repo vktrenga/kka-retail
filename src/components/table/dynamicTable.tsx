@@ -1,62 +1,20 @@
 "use client";
-
 import { useMemo, useState } from "react";
-type TableFilter = {
-  fromDate?: string;
-  toDate?: string;
-  store?: string;
-};
 
 export function DynamicTable<T extends { id: number | string }>({
   data = [],
   columns = [],
-  filterData,
-  isHeaderTotal= false
+  isHeaderTotal= false,
 }: TableProps<T>): import("react/jsx-runtime").JSX.Element {
-  const [filters, setFilters] = useState<TableFilter>({});
-  const [draft, setDraft] = useState<TableFilter>({});
   const [sortKey, setSortKey] = useState<string>(
     columns.length ? String(columns[0].key) : ""
   );
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
 
-  const isValidDate = (val: unknown) => {
-    if (!val) return false;
-    const d = new Date(val as string);
-    return !isNaN(d.getTime());
-  };
-
-  const applyFilters = () => setFilters(draft);
-  const clearFilters = () => {
-    setDraft({});
-    setFilters({});
-  };
-
-  const uniqueStores = useMemo(() => {
-    const set = new Set<string>();
-    data.forEach((row) => {
-      if ((row as any)?.store) set.add((row as any).store);
-    });
-    return Array.from(set);
-  }, [data]);
-
+ 
   const processed = useMemo(() => {
     let filtered = [...data];
-
-    if ((filters as any).fromDate) {
-      filtered = filtered.filter((row) => {
-        if (!isValidDate((row as any)?.date)) return true;
-        return new Date((row as any).date) >= new Date((filters as any).fromDate);
-      });
-    }
-
-    if ((filters as any).toDate) {
-      filtered = filtered.filter((row) => {
-        if (!isValidDate((row as any)?.date)) return true;
-        return new Date((row as any).date) <= new Date((filters as any).toDate);
-      });
-    }
-
+   
     if (sortKey) {
       filtered.sort((a, b) => {
         const aVal = (a as any)?.[sortKey];
@@ -73,7 +31,7 @@ export function DynamicTable<T extends { id: number | string }>({
     }
 
     return filtered;
-  }, [data, filters, sortKey, sortOrder]);
+  }, [data, sortKey, sortOrder]);
 
   const totals = useMemo(() => {
     return processed.reduce(
@@ -99,51 +57,6 @@ export function DynamicTable<T extends { id: number | string }>({
 
   return (
     <div className="bg-white p-4 rounded-xl shadow space-y-4">
-      {/* Filters */}
-      <div className="grid grid-cols-4 gap-4">
-        <select
-          value={""}
-          onChange={(e) => setDraft({ ...draft, store: e.target.value })}
-          className="border px-2 py-1"
-        >
-          <option value="">All Stores</option>
-          {filterData.storeList.map((store:any) => (
-            <option key={store._id} value={store._id}>
-              {store.name}
-            </option>
-          ))}
-        </select>
-
-        <input
-          type="date"
-          value={draft.fromDate || ""}
-          onChange={(e) => setDraft({ ...draft, fromDate: e.target.value })}
-          className="border px-2 py-1"
-        />
-
-        <input
-          type="date"
-          value={draft.toDate || ""}
-          onChange={(e) => setDraft({ ...draft, toDate: e.target.value })}
-          className="border px-2 py-1"
-        />
-
-        <div className="flex gap-2">
-          <button
-            onClick={applyFilters}
-            className="bg-blue-500 text-white px-3 py-1 rounded"
-          >
-            Search
-          </button>
-          <button
-            onClick={clearFilters}
-            className="bg-gray-300 px-3 py-1 rounded"
-          >
-            Clear
-          </button>
-        </div>
-      </div>
-
       {/* Table */}
       <div className="max-h-[400px] overflow-auto border">
         <table className="w-full border text-sm">
@@ -167,9 +80,31 @@ export function DynamicTable<T extends { id: number | string }>({
               <tr key={row.id} className="hover:bg-blue-50">
                 {columns.map((col) => (
                   <td key={String(col.key)} className="border p-2">
-                    {col.render
-                      ? col.render(row)
-                      : (row as any)?.[col.key] ?? "-"}
+                    {col.key === "actions" && Array.isArray((row as any)?.actions) ? (
+                      <div className="flex gap-2">
+                        {(row as any).actions.map((action: { url: string; label: string }, idx: number) => (
+                          <a
+                            key={idx}
+                            href={action.url}
+                            className="text-blue-600 hover:underline"
+                          >
+                            {action.label}
+                          </a>
+                        ))}
+                      </div>
+                    ) : col.key === "difference" ? (
+                      <span
+                        style={{
+                          color: (row as any)?.[col.key] > 0 ? "red" : "green",
+                        }}
+                      >
+                        {(row as any)?.[col.key] ?? "-"}
+                      </span>
+                    ) : col.render ? (
+                      col.render(row)
+                    ) : (
+                      (row as any)?.[col.key] ?? "-"
+                    )}
                   </td>
                 ))}
               </tr>
@@ -181,7 +116,7 @@ export function DynamicTable<T extends { id: number | string }>({
       {/* Footer */}
       { isHeaderTotal && 
       <div className="sticky bottom-0 bg-gray-100 border-t p-3 flex justify-between">
-        <span>Total Qty: {totals.qty}</span>
+        <span></span>
         <span>Total Amount: ₹{totals.amount.toFixed(2)}</span>
       </div>
       }
