@@ -4,13 +4,15 @@ import { useState } from "react";
 import { UserForm } from "@/components/users/UserForm";
 import { userService } from "@/api/user";
 import { useRouter } from "next/navigation";
+import { User } from "@/types/user";
 
 export default function CreateUserPage() {
   const router = useRouter();
 
-  const handleSave = async (data: { name: string; email: string }) => {
-    await userService.add(data);
-    router.push("/user");
+  const handleSave = (data: Partial<User>) => {
+    userService.add(data as User).then(() => {
+      router.push("/user");
+    });
   };
 
   return (
@@ -20,3 +22,4 @@ export default function CreateUserPage() {
     </div>
   );
 }
+

@@ -14,11 +14,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ open, setOpen }) => {
   const menuItems = [
     { name: "Dashboard", path: "/" },
     { name: "Sales Data Upload", path: "/sales" },
+    { name: "Drafted Sales Data", path: "/sales/list" },
+    { name: "Unapproved Sales Data", path: "/sales/unapproved-list" },
+    { name: "Daily Report", path: "/report/daily" },
+    { name: "Audit Report", path: "/report/audit" },
     { name: "Sales Report", path: "/analytics" },
     { name: "User", path: "/user" },
     { name: "Store", path: "/store" },
-
-    // { name: "Customers", path: "/customers" },
   ];
 
   return (
@@ -26,7 +28,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ open, setOpen }) => {
       <aside
         className={`fixed md:static top-0 left-0 z-40 bg-gray-900 text-white w-64 h-screen transform ${open ? "translate-x-0" : "-translate-x-full"} md:translate-x-0 transition-transform duration-300`}
       >
-        <div className="p-5 text-xl font-bold border-b border-gray-700">🛍 Retail Admin</div>
+        <div className="p-5 text-xl font-bold border-b border-gray-700">🛍 DRS - Freshgos Retail Admin</div>
 
         <nav className="p-4 space-y-2">
           {menuItems.map((item) => {

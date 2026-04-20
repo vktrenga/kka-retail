@@ -1,6 +1,11 @@
 "use client";
 
+import { toNumber } from "@/utils/commonTypes";
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
+import { approveData } from "@/api/import";
+import router from "next/router";
+import { showNotification } from "@/utils/notifications";
 
 type CategoryRow = {
   name: string;
@@ -18,22 +23,25 @@ type DailyFinanceDataType = {
 
 type Props = {
   data: CategoryRow[];
+  dailyFinanceRecordData: DailyFinanceDataType;
   verification: Record<string, boolean>;
   OnFinancialDataUpdate: (data: DailyFinanceDataType) => void;
   onVerifyChange: (key: string, value: boolean) => void;
+  ApprovalComment: string;
+  readOnly?: boolean; // Added readOnly prop
 };
-
-// ✅ Safe number helper
-const toNumber = (val: any) => Number(val || 0);
 
 export const FinancialTable = ({
   data,
+  dailyFinanceRecordData,
   verification,
   OnFinancialDataUpdate,
   onVerifyChange,
+  ApprovalComment,
+  readOnly = false, // Default value for readOnly
 }: Props) => {
   const [dailyFinanceData, setDailyFinance] =
-    useState<DailyFinanceDataType>({
+    useState<DailyFinanceDataType>(dailyFinanceRecordData || {
       cashandCard: 0,
       actualCard: 0,
       actualCash: 0,
@@ -42,14 +50,17 @@ export const FinancialTable = ({
       difference: 0,
     });
 
+  const [approverComment, setApproverComment] = useState(ApprovalComment || "");
+
   const displayData = data || [];
 
   const columns = ["Title", "Amount"];
 
-  const totalAmount = displayData.reduce(
-    (sum, item) => sum + toNumber(item.amount),
-    0
-  );
+  const pathname = usePathname();
+  const isViewMode = pathname.includes("view") || pathname.includes("unapproved");
+
+  // Extract the data ID from the URL path
+  const dataId = pathname.split("/")[2]; // Assuming the ID is always the third segment in the path
 
   // ✅ Update Cash + Card from table data
   useEffect(() => {
@@ -112,6 +123,36 @@ export const FinancialTable = ({
     ? "bg-red-100 text-red-700 border-red-400"
     : "bg-yellow-100 text-yellow-700 border-yellow-400";
 
+  // Function to handle approve button click
+  const handleApprove = async () => {
+    const dataId = pathname.split("/")[2]; // Assuming the ID is always the third segment in the path
+    if (!approverComment.trim()) {
+      // Show notification for missing comment
+      showNotification("Please enter a comment before approving.", "error");
+      return;
+    }
+
+    try {
+      // Call the API function
+      await approveData({ id: dataId, comment: approverComment });
+
+      // Show success notification
+      showNotification("Data approved successfully.", "success");
+
+      // Redirect to the unapproved list page after a delay
+      setTimeout(() => {
+        window.location.href = "/sales/unapproved-list"; // Ensure redirection even if router.push fails
+      }, 2000); // Redirect after 2 seconds
+    } catch (error) {
+      console.error("Error approving data:", error);
+
+      // Show error notification
+      showNotification("Failed to approve data. Please try again.", "error");
+    }
+  };
+
+  // Add state for notification
+
   return (
     <div className="bg-white rounded-b-xl border shadow">
       <div className="grid grid-cols-[300px_1fr] gap-3 border rounded overflow-hidden">
@@ -135,7 +176,7 @@ export const FinancialTable = ({
           {/* Actual Card */}
           <div className="flex flex-col">
             <label className="text-sm font-medium text-gray-600 mb-1">
-              Actual Card
+              Actual Card (Card Terminal)
             </label>
             <input
               type="number"
@@ -145,6 +186,7 @@ export const FinancialTable = ({
               onChange={(e) =>
                 handleChange("actualCard", Number(e.target.value))
               }
+              disabled={readOnly} // Disable input if readOnly is true
             />
           </div>
 
@@ -161,6 +203,7 @@ export const FinancialTable = ({
               onChange={(e) =>
                 handleChange("actualCash", Number(e.target.value))
               }
+              disabled={readOnly} // Disable input if readOnly is true
             />
           </div>
 
@@ -177,6 +220,7 @@ export const FinancialTable = ({
               onChange={(e) =>
                 handleChange("manualPayout", Number(e.target.value))
               }
+              disabled={readOnly} // Disable input if readOnly is true
             />
           </div>
 
@@ -193,6 +237,7 @@ export const FinancialTable = ({
               onChange={(e) =>
                 handleChange("bankingEntry", Number(e.target.value))
               }
+              disabled={readOnly} // Disable input if readOnly is true
             />
           </div>
 
@@ -244,28 +289,60 @@ export const FinancialTable = ({
           </div>
         </div>
 
-        {/* OPTIONAL TOTAL */}
-        {/* <div className="col-span-2 bg-gray-100 border-t p-3 font-medium flex justify-between">
-          <span>Total</span>
-          <span>{totalAmount}</span>
-        </div> */}
+       
       </div>
 
       {/* VERIFICATION */}
-      <div className="mt-4 flex justify-between items-center p-2">
-        <div className="flex items-center gap-2">
-          <input
-            type="checkbox"
-            checked={verification["financial"] || false}
-            onChange={(e) =>
-              onVerifyChange("financial", e.target.checked)
-            }
-          />
-          <span className="text-sm">
-            All data has been verified and is consistent with the original records
-          </span>
+      {!isViewMode && (
+        <div className="mt-4 flex justify-between items-center px-3 pb-3">
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              checked={verification["financial"] || false}
+              onChange={(e) =>
+                onVerifyChange("financial", e.target.checked)
+              }
+              disabled={readOnly} // Disable checkbox if readOnly is true
+            />
+            <span className="text-sm">
+              All data has been verified and is consistent with the
+              original records
+            </span>
+          </div>
         </div>
-      </div>
+      )}
+
+      {(pathname.includes("unapproved") || pathname.includes("view")) && (
+        <div className="mt-4 flex flex-col gap-2 px-3 pb-3">
+          <div className="flex flex-col gap-2">
+            <label className="text-sm font-medium text-gray-600">
+              Comment (for approver)
+            </label>
+            <textarea
+              value={approverComment}
+              onChange={(e) => setApproverComment(e.target.value)}
+              className="border rounded px-2 py-1 w-1/2"
+              placeholder="Enter your comment here"
+              rows={4} // Adjust rows for height
+            />
+          </div>
+          <button
+            onClick={handleApprove}
+            disabled={pathname.includes("unapproved") ? false : true} // Disable button if readOnly is true
+            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 disabled:bg-gray-300 w-1/2"
+          >
+            Approve
+          </button>
+        </div>
+      )}
+
+      {/* {notification && (
+        <div className="fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded shadow">
+          {notification}
+        </div>
+      )} */}
     </div>
   );
 };
+
+

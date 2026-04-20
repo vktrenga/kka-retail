@@ -49,3 +49,4 @@ export function UserTable({ users, onDelete }: Props) {
     </table>
   );
 }
+

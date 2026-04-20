@@ -4,13 +4,13 @@ import React, { useEffect, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
-import Select from "react-select";
+import Select, { SingleValue, MultiValue } from "react-select";
 import axios from "axios";
 import { User } from "@/types/user";
 import { storeServie } from "@/api/store";
 
 type Props = {
-  onSave: (data: any) => void;
+  onSave: (data: Partial<User>) => void;
   editingUser?: User | null;
 };
 
@@ -36,7 +36,8 @@ const roles = [
 ];
 
 export function UserForm({ onSave, editingUser }: Props) {
-  const [storeOptions, setStoreOptions] = useState<{ label: string; value: string }[]>([]);
+  type StoreOption = { label: string; value: string };
+  const [storeOptions, setStoreOptions] = useState<StoreOption[]>([]);
 
   const {
     register,
@@ -44,8 +45,8 @@ export function UserForm({ onSave, editingUser }: Props) {
     control,
     reset,
     formState: { errors },
-  } = useForm({
-    resolver: yupResolver(schema),
+  } = useForm<User>({
+    resolver: yupResolver(schema) as any,
     defaultValues: {
       firstName: "",
       lastName: "",
@@ -63,7 +64,7 @@ export function UserForm({ onSave, editingUser }: Props) {
     const fetchStores = async () => {
       try {
         const res = await storeServie.getAll(); // Replace with your API
-        const options = res.data.data.map((s: any) => ({ label: s.name, value: s._id }));
+        const options: StoreOption[] = res.data.data.map((s: { name: string; _id: string }) => ({ label: s.name, value: s._id }));
         setStoreOptions(options);
       } catch (err) {
         console.error("Failed to fetch stores", err);
@@ -91,7 +92,7 @@ export function UserForm({ onSave, editingUser }: Props) {
   // ------------------
   // Handle submit
   // ------------------
-  const onSubmit = (data: any) => {
+  const onSubmit = (data: Partial<User>) => {
     // Password required only on create
     if (!editingUser && !data.password) {
       alert("Password is required for new user");
@@ -159,7 +160,9 @@ export function UserForm({ onSave, editingUser }: Props) {
               {...field}
               options={roles}
               placeholder="Select Role"
-              onChange={(option: any) => field.onChange(option.value)}
+              onChange={(option: SingleValue<StoreOption>) => {
+                field.onChange(option?.value);
+              }}
               value={roles.find((r) => r.value === field.value)}
             />
           )}
@@ -173,14 +176,19 @@ export function UserForm({ onSave, editingUser }: Props) {
           name="accessStores"
           control={control}
           render={({ field }) => (
-            <Select
-              {...field}
-              options={storeOptions}
-              isMulti
-              placeholder="Select Stores"
-              onChange={(options: any) => field.onChange(options.map((o: any) => o.value))}
-              // value={storeOptions.filter((s) => field.value.includes(s.value))}
-            />
+              <Select
+                options={storeOptions}
+                isMulti
+                placeholder="Select Stores"
+                onChange={(options: MultiValue<StoreOption>) => {
+                  field.onChange(options ? options.map((o) => o.value) : []);
+                }}
+                value={storeOptions.filter((s) => Array.isArray(field.value) && field.value.includes(s.value))}
+                onBlur={field.onBlur}
+                name={field.name}
+                ref={field.ref}
+                isDisabled={field.disabled}
+              />
           )}
         />
         {errors.accessStores && <p className="text-red-500">{errors.accessStores.message}</p>}
@@ -196,3 +204,4 @@ export function UserForm({ onSave, editingUser }: Props) {
     </form>
   );
 }
+

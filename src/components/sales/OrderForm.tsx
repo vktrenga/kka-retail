@@ -19,6 +19,7 @@ export const OrderForm: React.FC<Props> = ({
   onSuccess,
 }) => {
   const [store, setStore] = useState<string>("");
+  const [uploadDate, setDate] = useState<string>("");
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [stores, setStores] = useState<StoreOption[]>([]);
@@ -82,7 +83,7 @@ export const OrderForm: React.FC<Props> = ({
       setLoading(true);
       setError("");
 
-      const data = await uploadFile(file, store);
+      const data = await uploadFile(file, store,uploadDate);
 
       onSubmit();
       onSuccess(data);
@@ -90,9 +91,10 @@ export const OrderForm: React.FC<Props> = ({
       // ✅ Reset form
       setFile(null);
       setStore("");
-    } catch (err) {
+      setDate("");
+    } catch (err:any) {
       console.error(err);
-      setError("Upload failed. Try again.");
+      setError(err?.response?.data?.detail || "Upload failed"  );
     } finally {
       setLoading(false);
     }
@@ -105,6 +107,7 @@ export const OrderForm: React.FC<Props> = ({
       </h2>
 
       {/* Store Select */}
+       <label>Store</label>
       <select
         className="w-full p-2 border rounded mb-3"
         value={store}
@@ -118,7 +121,20 @@ export const OrderForm: React.FC<Props> = ({
           </option>
         ))}
       </select>
+      <label>Date</label>
+ {/* <input
+        type="date"
+        className="w-full p-2 border rounded mb-3"
 
+        // disabled={loading}
+      /> */}
+        <input
+          type="date"
+          value={uploadDate}
+          onChange={(e) => setDate(e.target.value)}
+          className="w-full p-2 border rounded mb-3"
+          max={new Date().toISOString().split("T")[0]} // Disable future dates
+        />
       {/* File Input */}
       <input
         type="file"

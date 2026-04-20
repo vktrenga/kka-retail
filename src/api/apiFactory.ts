@@ -22,3 +22,4 @@ export const createApi = (baseURL: string): AxiosInstance => {
 
   return api;
 };
+

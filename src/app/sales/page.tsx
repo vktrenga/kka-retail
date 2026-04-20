@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { OrderForm } from "@/components/sales/OrderForm";
 import { OrderTabs } from "@/components/sales/OrderTabs";
 import { SalesTable } from "@/components/sales/SalesTable";
@@ -8,6 +8,8 @@ import { OtherCategoryTable } from "@/components/sales/OtherCategoryTable";
 import { CardDetailsTable } from "@/components/sales/CardDetailsTable";
 import { FinancialTable } from "@/components/sales/FinancialTable";
 import { updateSalesData } from "@/api/import";
+import { showNotification } from "@/utils/notifications";
+import { TabKey } from "@/types/sales";
 
 // ✅ Types
 type Verification = {
@@ -17,11 +19,7 @@ type Verification = {
   otherCategory: boolean;
 };
 
-type TabKey =
-  | "Sales"
-  | "Other Category"
-  | "Card Details"
-  | "Financial";
+
 
 export default function OrdersPage() {
   const [submitted, setSubmitted] = useState(false);
@@ -41,17 +39,7 @@ export default function OrdersPage() {
   const updateGroup = useCallback((key: string, value: any) => {
     setAllData((prev: any) => {
       const existingData = prev?.data || {};
-
-      return {
-        ...prev,
-        data: {
-          ...existingData,
-          groups: {
-            ...(existingData.groups || {}), // ✅ ensure groups exists
-            [key]: value, // ✅ create/update key
-          },
-        },
-      };
+      return { ...prev, data: { ...existingData, groups: { ...(existingData.groups || {}), [key]: value } } };
     });
   }, []);
 
@@ -60,11 +48,22 @@ export default function OrdersPage() {
     if (!excelData?.data?._id) return;
 
     try {
-      await updateSalesData(excelData.data._id, excelData.data);
-      alert("Updated successfully");
+      const updateResult = await updateSalesData(excelData.data._id, excelData.data);
+
+      // Show success notification
+      if (updateResult) {
+        showNotification("Updated successfully", "success");
+      }
+
+      // Redirect to sales page after a delay
+      setTimeout(() => {
+        window.location.href = "/sales"; //
+      }, 1000); // Redirect after 1 second
     } catch (err) {
       console.error(err);
-      alert("Update failed");
+
+      // Show error notification
+      showNotification("Update failed. Please try again.", "error");
     }
   };
 
@@ -73,7 +72,7 @@ export default function OrdersPage() {
     (key: keyof Verification, value: boolean) => {
       setVerification((prev) => ({
         ...prev,
-        [key]: value,
+        [key]: value, // Set the value explicitly
       }));
     },
     []
@@ -89,12 +88,20 @@ export default function OrdersPage() {
           <SalesTable
             data={groups.sales_summary || []}
             verification={verification}
-            onVerifyChange={() =>
-              handleVerifyChange("category", true)
-            }
+            onVerifyChange={(data) => handleVerifyChange("category", Boolean(data))}
           />
         );
-
+       case "Scratch Card":
+        return (
+          <CardDetailsTable
+            data={groups.scratch_card_data || []}
+            verification={verification}
+            OnPaymentSummaryUpdate={(data) =>
+              updateGroup("scratch_card_data", data)
+            }
+            onVerifyChange={(data) => handleVerifyChange("card", Boolean(data))}
+          />
+        );
       case "Other Category":
         return (
           <OtherCategoryTable
@@ -103,37 +110,23 @@ export default function OrdersPage() {
             onOtherCategoryUpdate={(data) =>
               updateGroup("exclusive_departments", data)
             }
-            onVerifyChange={() =>
-              handleVerifyChange("otherCategory", true)
-            }
+            cardData = {groups.scratch_card_data || []}
+            onVerifyChange={(data) => handleVerifyChange("otherCategory", Boolean(data))}
+            
           />
         );
-
-      case "Card Details":
-        return (
-          <CardDetailsTable
-            data={groups.scratch_card_data || []}
-            verification={verification}
-            OnPaymentSummaryUpdate={(data) =>
-              updateGroup("scratch_card_data", data)
-            }
-            onVerifyChange={() =>
-              handleVerifyChange("card", true)
-            }
-          />
-        );
-
       case "Financial":
         return (
           <FinancialTable
             data={groups.payment_summary || []} // ✅ safe fallback
             verification={verification}
+            dailyFinanceRecordData={groups.daily_finance_data || {}}
             OnFinancialDataUpdate={(data) =>
               updateGroup("daily_finance_data", data) // ✅ auto-create
             }
-            onVerifyChange={() =>
-              handleVerifyChange("financial", true)
-            }
+            onVerifyChange={(data) => handleVerifyChange("financial", Boolean(data))}
+            ApprovalComment={""} 
+
           />
         );
 
@@ -144,12 +137,16 @@ export default function OrdersPage() {
 
   return (
     <div className="space-y-6">
+
       {/* Form */}
       {!submitted && (
         <div className="bg-white p-6 rounded-xl shadow border max-w-lg">
           <OrderForm
             onSubmit={() => setSubmitted(true)}
-            onSuccess={(data) => setAllData(data)}
+            onSuccess={(data) => {
+              setAllData(data);
+              setSubmitted(true); // Ensure submitted is set to true
+            }}
           />
         </div>
       )}

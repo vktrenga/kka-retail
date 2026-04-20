@@ -14,16 +14,24 @@ export default function EditUserPage() {
   useEffect(() => {
     const fetchUser = async () => {
       if (!id) return;
-      const userData:any = await userService.get(id);
+
+      const userId = Array.isArray(id) ? id[0] : id;
+
+      const userData: any = await userService.get(userId);
       setEditingUser(userData?.data?.data);
     };
+
     fetchUser();
   }, [id]);
 
-  const handleSave = async (data: { name: string; email: string }) => {
-    if (!id) return;
-    await userService.edit(id, data);
-    router.push("/user");
+  const handleSave = (data: Partial<User>) => {
+    const userId = Array.isArray(id) ? id[0] : id;
+
+    if (!userId) return;
+
+    userService.edit(userId, data).then(() => {
+      router.push("/user");
+    });
   };
 
   if (!editingUser) return <div>Loading...</div>;

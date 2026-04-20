@@ -1,0 +1,10 @@
+reviews:
+  auto_review:
+    enabled: true
+  request_changes_workflow:
+    enabled: true
+
+rules:
+  - name: security
+  - name: performance
+  - name: readability
