@@ -1,8 +1,9 @@
 import { importReportAPI } from "./apis";
-export const uploadFile = async (file: File, store: string) => {
+export const uploadFile = async (file: File, store: string, uploadDate:string) => {
   const formData = new FormData();
   formData.append("file", file);
   formData.append("store", store);
+  formData.append("upload_date", uploadDate);
   const res = await importReportAPI.post("import/upload", formData, {
     withCredentials: true,
   });

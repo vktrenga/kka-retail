@@ -83,10 +83,17 @@ export default function Dashboard() {
       }));
   }, [mode]);
 
+  const [loading, setLoading] = useState(false);
+
   /* ✅ FIX 4: Search button handler */
   const handleSearch = async () => {
-    const res = await fetchReport(filters);
-    setAPIData(res)
+    setLoading(true);
+    try {
+      const res = await fetchReport(filters);
+      setAPIData(res);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const format = (n: number) =>
@@ -96,7 +103,12 @@ export default function Dashboard() {
     })}`;
 
   return (
-    <div className="min-h-screen bg-[#f5f7fb] p-6 space-y-6">
+    <div className="relative min-h-screen bg-[#f5f7fb] p-6 space-y-6">
+      {loading && (
+        <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-75 z-10">
+          <div className="text-center text-lg font-semibold">Loading...</div>
+        </div>
+      )}
       <Header mode={mode} setMode={setMode} />
 
       {/* ✅ FIX 5: Pass onSearch */}

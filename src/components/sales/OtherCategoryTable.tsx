@@ -2,12 +2,14 @@ import { useMemo, useCallback } from "react";
 import { toNumber } from "@/utils/commonTypes";
 import type { CategoryRow, OtherCategoryRow } from "@/types/analytics";
 import { usePathname } from "next/navigation";
+import { CardRow } from "@/types/sales";
 
 type Props = {
   data: OtherCategoryRow[];
   verification: Record<string, boolean>;
   onOtherCategoryUpdate: (data: OtherCategoryRow[]) => void;
   onVerifyChange: (key: string, value: boolean) => void;
+  cardData: CardRow[],
   readOnly?: boolean; // Added readOnly prop
 };
 
@@ -25,6 +27,7 @@ export const OtherCategoryTable = ({
   verification,
   onOtherCategoryUpdate,
   onVerifyChange,
+  cardData,
   readOnly = false, // Default value for readOnly
 }: Props) => {
   const pathname = usePathname();
@@ -40,28 +43,28 @@ export const OtherCategoryTable = ({
     "Diff Amount",
   ];
 
-  // ✅ Core Calculation
-  const calculateRow = useCallback((row: OtherCategoryRow): OtherCategoryRow => {
-    const actualQty = toNumber(row.actual_qty);
-    const actualAmount = toNumber(row.actual_amount);
-
-    return {
-      ...row,
-      qty_diff: row.qty - actualQty,
-      diff_amount: round(row.amount - actualAmount),
-    };
-  }, []);
+  
+  const cardDataTotals = useMemo(() => {
+    return cardData.reduce(
+      (acc, item) => {
+        acc.sales += toNumber(item.sales);
+        acc.amount += item.amount;
+        return acc;
+      },
+      { sales: 0, amount: 0}
+    );
+  }, [cardData]);
 
   // ✅ Generic updater (reusable)
   const updateRow = useCallback(
     (index: number, updates: Partial<OtherCategoryRow>) => {
       const updated = data.map((row, i) =>
-        i === index ? calculateRow({ ...row, ...updates }) : row
+        i === index ? { ...row, ...updates } : row
       );
 
       onOtherCategoryUpdate(updated);
     },
-    [data, calculateRow, onOtherCategoryUpdate]
+    [data, onOtherCategoryUpdate]
   );
 
   // ✅ Totals
@@ -78,6 +81,9 @@ export const OtherCategoryTable = ({
     );
   }, [data]);
 
+
+
+  
   return (
     <div className="bg-white rounded-b-xl border shadow">
       <div className="p-4 font-semibold border-b">
@@ -97,20 +103,24 @@ export const OtherCategoryTable = ({
           </thead>
 
           <tbody>
-            {data.length > 0 ? (
-              data.map((row, i) => (
+            {data.map((row, i) => {
+              const actualQty = row.name === "SCRATCH CARD" ? cardDataTotals.sales : row.actual_qty;
+              const actualAmount = row.name === "SCRATCH CARD" ? cardDataTotals.amount : row.actual_amount;
+
+              const qtyDiff = row.qty - toNumber(actualQty);
+              const diffAmount = round(row.amount - toNumber(actualAmount));
+
+              return (
                 <tr key={i} className="hover:bg-blue-50">
                   <td className="p-3 border">{row.name}</td>
 
-                  <td className="p-3 border text-right">
-                    {row.qty}
-                  </td>
+                  <td className="p-3 border text-right">{row.qty}</td>
 
                   {/* Actual Qty */}
                   <td className="p-3 border">
                     <input
                       type="number"
-                      value={row.actual_qty ?? ""}
+                      value={actualQty ?? ""}
                       onChange={(e) =>
                         updateRow(i, {
                           actual_qty: toNumber(e.target.value),
@@ -124,23 +134,21 @@ export const OtherCategoryTable = ({
                   {/* Diff Qty */}
                   <td
                     className={`p-3 border text-center font-medium ${
-                      (row.qty_diff ?? 0) > 0
+                      qtyDiff > 0
                         ? "text-red-500"
                         : "text-green-600"
                     }`}
                   >
-                    {row.qty_diff ?? 0}
+                    {qtyDiff}
                   </td>
 
-                  <td className="p-3 border text-right">
-                    {formatCurrency(row.amount)}
-                  </td>
+                  <td className="p-3 border text-right">{formatCurrency(row.amount)}</td>
 
                   {/* Actual Amount */}
                   <td className="p-3 border">
                     <input
                       type="number"
-                      value={row.actual_amount ?? ""}
+                      value={actualAmount ?? ""}
                       onChange={(e) =>
                         updateRow(i, {
                           actual_amount: toNumber(e.target.value),
@@ -154,25 +162,16 @@ export const OtherCategoryTable = ({
                   {/* Diff Amount */}
                   <td
                     className={`p-3 border text-center font-medium ${
-                      (row.diff_amount ?? 0) > 0
+                      diffAmount > 0
                         ? "text-red-500"
                         : "text-green-600"
                     }`}
                   >
-                    {formatCurrency(row.diff_amount ?? 0)}
+                    {formatCurrency(diffAmount)}
                   </td>
                 </tr>
-              ))
-            ) : (
-              <tr>
-                <td
-                  colSpan={7}
-                  className="text-center p-4 text-gray-500"
-                >
-                  No data available
-                </td>
-              </tr>
-            )}
+              );
+            })}
           </tbody>
         </table>
       </div>

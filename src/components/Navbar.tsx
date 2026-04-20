@@ -22,8 +22,10 @@ export const Navbar: React.FC<NavbarProps> = ({ open, setOpen }) => {
         return "Drafted Sales Data";
       case "/sales/unapproved-list":
         return "Unapproved Sales Data";
-      case "/report/list":
+      case "/report/daily":
         return "Daily Report";
+      case "/report/audit":
+        return "Audit Report";
       case "/user":
         return "User Management";
       default:

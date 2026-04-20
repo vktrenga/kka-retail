@@ -1,11 +1,10 @@
-'use client'; // make it a client component
+'use client';
 
-import { Mode } from "@/types/analytics";
+import { Mode, Category } from "@/types/analytics";
 import { MetricsRow } from "./matrics-rows";
 import { DayTabs } from "./days-tabs";
-import { CategoryTable } from "./category-table";
+import { CategoryTable, Column } from "./category-table";
 import { ScratchCardDataTable } from "./scratch-card-data-table";
-
 import type { Store } from "@/types/analytics";
 
 type StoreData = {
@@ -34,8 +33,10 @@ export function StoreCard({
 }) {
   const isOpen = activeStores.includes(index);
 
-  // Find store name from storeList
-  const store: any = storeList.find((store: any) => store._id === storeData.store);
+  const store: any = storeList.find(
+    (store: any) => store._id === storeData.store
+  );
+
   const storeName = store?.name || "Unknown Store";
 
   const modeKeys = Object.keys(storeData.data).filter((key) => key !== "all");
@@ -45,14 +46,36 @@ export function StoreCard({
       ? storeData?.data?.[activeIndex]
       : storeData?.data?.all;
 
-  const currentStoreData = selected?.payment_summary || [];
+  const currentAllStoreData =
+    storeData?.data?.all?.daily_finance_data || [];
+
+  const currentStoreData = selected?.daily_finance_data || [];
   const currentModeCategory = selected?.sales_summary || [];
   const currentModeOtherCetegroy =
     selected?.exclusive_departments || [];
   const scratchCardData =
     selected?.scratch_card_data || [];
+
+  // ✅ FIXED TYPES HERE
+  const catColumns: Column<Category>[] = [
+    { name: "name", label: "Category", type: "string" },
+    { name: "qty", label: "Qty", type: "number" },
+    { name: "amount", label: "Sale Amount", type: "number" },
+  ];
+
+  const exclusiveCatColumns: Column<Category>[] = [
+    { name: "name", label: "Category", type: "string" },
+    { name: "qty", label: "Qty", type: "number" },
+    { name: "actual_qty", label: "Actual Qty", type: "number" },
+    { name: "qty_diff", label: "Qty Diff", type: "number" },
+    { name: "amount", label: "Sale Amount", type: "number" },
+    { name: "actual_amount", label: "Actual Amount", type: "number" },
+    { name: "diff_amount", label: "Amount Diff", type: "number" },
+  ];
+
   return (
     <div className="bg-white rounded-xl border shadow-sm">
+
       <div
         className="p-4 cursor-pointer hover:bg-gray-50"
         onClick={() =>
@@ -65,14 +88,17 @@ export function StoreCard({
       >
         <div className="flex justify-between">
           <h2 className="font-medium">{storeName}</h2>
-          <span className="text-xs text-gray-400">{isOpen ? "▲" : "▼"}</span>
+          <span className="text-xs text-gray-400">
+            {isOpen ? "▲" : "▼"}
+          </span>
         </div>
 
-        <MetricsRow currentStoreData={currentStoreData} />
+        <MetricsRow currentStoreData={currentAllStoreData} />
       </div>
 
       {isOpen && (
         <div className="p-4 space-y-4">
+
           <DayTabs
             activeIndex={activeIndex}
             setActiveIndex={setActiveIndex}
@@ -82,23 +108,27 @@ export function StoreCard({
           <MetricsRow currentStoreData={currentStoreData} />
 
           <div className="grid md:grid-cols-2 gap-4">
+
             <CategoryTable
               title="Department Data"
               categories={currentModeCategory}
+              columns={catColumns}
             />
+
             <CategoryTable
               title="Exclusive Department Data"
               categories={currentModeOtherCetegroy}
+              columns={exclusiveCatColumns}
             />
 
             <ScratchCardDataTable
               title="Scratch Card Data"
               scratchCardData={scratchCardData}
             />
+
           </div>
         </div>
       )}
     </div>
   );
 }
-

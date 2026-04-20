@@ -176,7 +176,7 @@ export const FinancialTable = ({
           {/* Actual Card */}
           <div className="flex flex-col">
             <label className="text-sm font-medium text-gray-600 mb-1">
-              Actual Card
+              Actual Card (Card Terminal)
             </label>
             <input
               type="number"

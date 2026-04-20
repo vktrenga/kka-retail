@@ -4,13 +4,13 @@ import type { User } from "@/types/user";
 
 export const userService = {
 getAll: async () => {
-  const res = await settingAPI.get("/users", {});
+  const res = await settingAPI.get("/users/", {});
   return res;
 },
 
 
 add: async (data: User) => {
-  const res = await settingAPI.post("/users", data);
+  const res = await settingAPI.post("/users/", data);
   return res;
 },
 

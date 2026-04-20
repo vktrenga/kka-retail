@@ -1,14 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter, useParams } from "next/navigation";
+import {  useParams } from "next/navigation";
 import { OrderTabs } from "@/components/sales/OrderTabs";
 import { SalesTable } from "@/components/sales/SalesTable";
 import { OtherCategoryTable } from "@/components/sales/OtherCategoryTable";
 import { CardDetailsTable } from "@/components/sales/CardDetailsTable";
 import { FinancialTable } from "@/components/sales/FinancialTable";
 import { useSalesPageLogic } from "../../useSalesPageLogic";
-import { getSalesDataById } from "@/api/import";
 import { useFetchSalesData } from "@/hooks/useFetchSalesData";
 
 export default function EditSalesPage() {
@@ -32,23 +30,25 @@ export default function EditSalesPage() {
             readOnly={isReadOnly} // Pass readOnly prop
           />
         );
-      case "Other Category":
-        return (
-          <OtherCategoryTable
-            data={groups.exclusive_departments || []}
-            verification={logic.verification}
-            onOtherCategoryUpdate={(data) => logic.updateGroup("exclusive_departments", data)}
-            onVerifyChange={() => logic.handleVerifyChange("otherCategory", true)}
-            readOnly={isReadOnly} // Pass readOnly prop
-          />
-        );
-      case "Card Details":
+      
+      case "Scratch Card":
         return (
           <CardDetailsTable
             data={groups.scratch_card_data || []}
             verification={logic.verification}
             OnPaymentSummaryUpdate={(data) => logic.updateGroup("scratch_card_data", data)}
             onVerifyChange={() => logic.handleVerifyChange("card", true)}
+            readOnly={isReadOnly} // Pass readOnly prop
+          />
+        );
+        case "Other Category":
+        return (
+          <OtherCategoryTable
+            data={groups.exclusive_departments || []}
+            verification={logic.verification}
+            onOtherCategoryUpdate={(data) => logic.updateGroup("exclusive_departments", data)}
+            onVerifyChange={() => logic.handleVerifyChange("otherCategory", true)}
+            cardData={groups.scratch_card_data || []}
             readOnly={isReadOnly} // Pass readOnly prop
           />
         );

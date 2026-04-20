@@ -24,3 +24,27 @@ type TableFilter = {
   toDate?: string;
   store?: string;
 };
+
+export type TabKey =
+  | "Sales"
+  | "Scratch Card"
+  | "Other Category"
+  | "Financial";
+
+export const TABS: TabKey[] = [
+  "Sales",
+  "Scratch Card",
+  "Other Category",
+  "Financial",
+];
+
+export type CardRow = {
+  name: string;
+  open: number;
+  close: number;
+  amount: number;
+  issue: number;
+  ref: string;
+  price: number;
+  sales: number;
+};

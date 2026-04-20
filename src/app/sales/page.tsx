@@ -9,6 +9,7 @@ import { CardDetailsTable } from "@/components/sales/CardDetailsTable";
 import { FinancialTable } from "@/components/sales/FinancialTable";
 import { updateSalesData } from "@/api/import";
 import { showNotification } from "@/utils/notifications";
+import { TabKey } from "@/types/sales";
 
 // ✅ Types
 type Verification = {
@@ -18,14 +19,7 @@ type Verification = {
   otherCategory: boolean;
 };
 
-type TabKey =
-  | "Sales"
-  | "Other Category"
-  | "Card Details"
-  | "Financial";
 
-// Add state for notification
-// const router = useRouter();
 
 export default function OrdersPage() {
   const [submitted, setSubmitted] = useState(false);
@@ -45,7 +39,6 @@ export default function OrdersPage() {
   const updateGroup = useCallback((key: string, value: any) => {
     setAllData((prev: any) => {
       const existingData = prev?.data || {};
-
       return { ...prev, data: { ...existingData, groups: { ...(existingData.groups || {}), [key]: value } } };
     });
   }, []);
@@ -98,20 +91,7 @@ export default function OrdersPage() {
             onVerifyChange={(data) => handleVerifyChange("category", Boolean(data))}
           />
         );
-
-      case "Other Category":
-        return (
-          <OtherCategoryTable
-            data={groups.exclusive_departments || []}
-            verification={verification}
-            onOtherCategoryUpdate={(data) =>
-              updateGroup("exclusive_departments", data)
-            }
-            onVerifyChange={(data) => handleVerifyChange("otherCategory", Boolean(data))}
-          />
-        );
-
-      case "Card Details":
+       case "Scratch Card":
         return (
           <CardDetailsTable
             data={groups.scratch_card_data || []}
@@ -122,7 +102,19 @@ export default function OrdersPage() {
             onVerifyChange={(data) => handleVerifyChange("card", Boolean(data))}
           />
         );
-
+      case "Other Category":
+        return (
+          <OtherCategoryTable
+            data={groups.exclusive_departments || []}
+            verification={verification}
+            onOtherCategoryUpdate={(data) =>
+              updateGroup("exclusive_departments", data)
+            }
+            cardData = {groups.scratch_card_data || []}
+            onVerifyChange={(data) => handleVerifyChange("otherCategory", Boolean(data))}
+            
+          />
+        );
       case "Financial":
         return (
           <FinancialTable

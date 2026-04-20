@@ -54,10 +54,11 @@ export default function EditSalesPage() {
             verification={logic.verification}
             onOtherCategoryUpdate={(data) => logic.updateGroup("exclusive_departments", data)}
             onVerifyChange={() => logic.handleVerifyChange("otherCategory", true)}
+            cardData={groups.scratch_card_data || []}
             readOnly={isReadOnly} // Pass readOnly prop
           />
         );
-      case "Card Details":
+      case "Scratch Card":
         return (
           <CardDetailsTable
             data={groups.scratch_card_data || []}

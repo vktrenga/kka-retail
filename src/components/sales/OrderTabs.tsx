@@ -1,20 +1,9 @@
-type TabKey =
-  | "Sales"
-  | "Other Category"
-  | "Card Details"
-  | "Financial";
+import { TabKey, TABS } from "@/types/sales";
 
 type Props = {
   activeTab: TabKey;
   setActiveTab: (tab: TabKey) => void;
 };
-
-const TABS: TabKey[] = [
-  "Sales",
-  "Other Category",
-  "Card Details",
-  "Financial",
-];
 
 export const OrderTabs = ({
   activeTab,
@@ -27,7 +16,6 @@ export const OrderTabs = ({
     >
       {TABS.map((tab) => {
         const isActive = activeTab === tab;
-
         return (
           <button
             key={tab}

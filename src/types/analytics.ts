@@ -3,6 +3,11 @@ export type Category = {
   name: string;
   qty: number;
   amount: number;
+  actual_qty?:number;
+  qty_diff?:number;
+  actual_amount?:number;
+  diff_amount?:number;
+
 };
 
 export type Period = {

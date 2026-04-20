@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect } from "react";
 import { updateSalesData } from "@/api/import";
 import { showNotification } from "@/utils/notifications";
+import { TabKey } from "@/types/sales";
 
 export type Verification = {
   financial: boolean;
@@ -9,11 +10,7 @@ export type Verification = {
   otherCategory: boolean;
 };
 
-export type TabKey =
-  | "Sales"
-  | "Other Category"
-  | "Card Details"
-  | "Financial";
+
 
 export function useSalesPageLogic(initialData: any = null) { 
   const [submitted, setSubmitted] = useState(!!initialData);

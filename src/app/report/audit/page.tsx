@@ -11,6 +11,7 @@ type Row = {
   date: string;
   status: string;
   actions: { url: string; label: string }[];
+  operationSummary: { name: string; amount: number }[];
 };
 
 type TableFilter = {
@@ -24,8 +25,10 @@ export default function ReportListPage() {
   const [storeList, setStoreList] = useState<{ _id: string; name: string }[]>([]);
   const [filters, setFilters] = useState<TableFilter>({});
   const [draft, setDraft] = useState<TableFilter>({});
+  const [loading, setLoading] = useState(false);
 
   const applyFilters = async () => {
+    setLoading(true);
     setFilters(draft);
 
     try {
@@ -39,26 +42,46 @@ export default function ReportListPage() {
       const items = importedData?.data?.items || [];
       const rows = items.map((item: any) => {
         const store = storeList.find((s) => s._id === item.store);
+        const operationSummary = item.groups?.operation_summary || [];
+
+        const summaryRows = operationSummary.map((summary: any) => ({
+          name: summary.name,
+          amount: summary.amount,
+        }));
+
+        const dynamicColumns = summaryRows.reduce((acc: any, summary: any) => {
+          acc[summary.name] = summary.amount;
+          return acc;
+        }, {});
+
         return {
           id: item._id,
           date: item.date,
           store: store?.name || "Unknown",
-          cashandCard: item.groups?.daily_finance_data?.cashandCard || 0,
-          actualCard: item.groups?.daily_finance_data?.actualCard || 0,
-          actualCash: item.groups?.daily_finance_data?.actualCash || 0,
-          manualPayout: item.groups?.daily_finance_data?.manualPayout || 0,
-          bankEntry: item.groups?.daily_finance_data?.bankingEntry || 0,
-          difference: item.groups?.daily_finance_data?.difference || 0,
-          status: item.status,
-          ApprovalComment: item.approval_comment || "",
+          ...dynamicColumns,
           actions: [
             { url: `/sales/${item._id}/view`, label: "View" },
           ],
         };
       });
+
+      const dynamicColumns = items[0]?.groups?.operation_summary?.map((summary: any) => ({
+        key: summary.name,
+        label: summary.name,
+      })) || [];
+
+      const columns = [
+        { key: "date", label: "Date" },
+        { key: "store", label: "Store" },
+        ...dynamicColumns,
+        { key: "actions", label: "Actions" },
+      ];
       setData(rows);
+      setColumns(columns);
     } catch (err) {
       console.error("Failed to fetch data", err);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -80,21 +103,25 @@ export default function ReportListPage() {
     fetchStores();
   }, []);
 
-  const columns = [
+  const [columns, setColumns] = useState([
     { key: "date", label: "Date" },
     { key: "store", label: "Store" },
-    { key: "cashandCard", label: "Card (inc CB & CBC)" },
-    { key: "actualCard", label: "Actual Card" },
-    { key: "actualCash", label: "Actual Cash" },
-    { key: "manualPayout", label: "Manual payout" },
-    { key: "bankEntry", label: "Bank Entry" },
-    { key: "difference", label: "Difference" },
-    { key: "ApprovalComment", label: "Approval Comment" },
     { key: "actions", label: "Actions" },
-  ];
+  ]);
+
+  useEffect(() => {
+    if (data.length > 0) {
+      // Removed redundant dynamic column generation
+    }
+  }, [data]);
 
   return (
     <div className="p-6 bg-blue-50 min-h-screen">
+      {loading && (
+        <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-75 z-10">
+          <div className="text-center text-lg font-semibold">Loading...</div>
+        </div>
+      )}
       <div className="grid grid-cols-4 gap-4 mb-4">
         <select
           value={draft.store || ""}
@@ -140,7 +167,8 @@ export default function ReportListPage() {
           </button>
         </div>
       </div>
-      <DynamicTable data={data} columns={columns} isHeaderTotal={false} />
+      {data.length>0 && 
+        <DynamicTable data={data} columns={columns} isHeaderTotal={true} />}
     </div>
   );
 }

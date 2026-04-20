@@ -17,13 +17,12 @@ export function DynamicTable<T extends { id: number | string }>({
   data = [],
   columns = [],
   isHeaderTotal = false,
-}: TableProps<T>): import("react/jsx-runtime").JSX.Element {
+}: TableProps<T>): JSX.Element {
   const [sortKey, setSortKey] = useState<string>(
     columns.length ? String(columns[0].key) : ""
   );
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
 
-  // ✅ Track expanded rows
   const [expandedRows, setExpandedRows] = useState<
     Record<string | number, boolean>
   >({});
@@ -35,11 +34,12 @@ export function DynamicTable<T extends { id: number | string }>({
     }));
   };
 
+  // ✅ Sorting
   const processed = useMemo(() => {
-    let filtered = [...data];
+    const sorted = [...data];
 
     if (sortKey) {
-      filtered.sort((a, b) => {
+      sorted.sort((a, b) => {
         const aVal = (a as any)?.[sortKey];
         const bVal = (b as any)?.[sortKey];
 
@@ -53,28 +53,28 @@ export function DynamicTable<T extends { id: number | string }>({
       });
     }
 
-    return filtered;
+    return sorted;
   }, [data, sortKey, sortOrder]);
 
+  // ✅ Totals
   const totals = useMemo(() => {
-    return processed.reduce(
-      (acc: { qty: number; amount: number }, row) => {
-        if (typeof (row as any)?.qty === "number") {
-          acc.qty += (row as any).qty;
+    return processed.reduce((acc: Record<string, number>, row) => {
+      Object.keys(row).forEach((key) => {
+        const value = (row as any)[key];
+        if (typeof value === "number") {
+          acc[key] = (acc[key] || 0) + value;
         }
-
-        if (
-          typeof (row as any)?.qty === "number" &&
-          typeof (row as any)?.price === "number"
-        ) {
-          acc.amount += (row as any).qty * (row as any).price;
-        }
-
-        return acc;
-      },
-      { qty: 0, amount: 0 }
-    );
+      });
+      return acc;
+    }, {});
   }, [processed]);
+
+  const safeTotals = useMemo(() => {
+    return Object.keys(totals).reduce((acc, key) => {
+      acc[key] = totals[key] ?? 0;
+      return acc;
+    }, {} as Record<string, number>);
+  }, [totals]);
 
   const handleSort = (key: string) => {
     if (sortKey === key) {
@@ -86,25 +86,24 @@ export function DynamicTable<T extends { id: number | string }>({
   };
 
   return (
-    <div className="bg-white p-4 rounded-xl shadow space-y-4">
-      <div className="max-h-[800px] overflow-auto border">
-        <table className="w-full border-collapse">
+    <div className="bg-white p-4 rounded-xl shadow h-full flex flex-col">
+      {/* ✅ Scroll container (ONLY this scrolls) */}
+      <div className="flex-grow overflow-y-auto border max-h-[500px]">
+        <table className="w-full border-collapse table-fixed">
           <colgroup>
-            {columns.map((_, index) => (
-              <col
-                key={index}
-                style={{ width: `${100 / columns.length}%` }}
-              />
+            {columns.map((_, i) => (
+              <col key={i} style={{ width: `${100 / columns.length}%` }} />
             ))}
           </colgroup>
 
-          <thead className="sticky top-0 bg-gray-100">
+          {/* ✅ Sticky Header */}
+          <thead className="sticky top-0 bg-gray-100 z-20">
             <tr>
               {columns.map((col) => (
                 <th
-                  key={col.key}
-                  className="p-3 border text-left cursor-pointer"
+                  key={String(col.key)}
                   onClick={() => handleSort(String(col.key))}
+                  className="p-3 border text-left cursor-pointer"
                 >
                   {col.label}
                 </th>
@@ -112,82 +111,103 @@ export function DynamicTable<T extends { id: number | string }>({
             </tr>
           </thead>
 
+          {/* ✅ Body */}
           <tbody>
             {processed.map((row) => (
               <tr key={row.id} className="hover:bg-blue-50">
-                {columns.map((col) => (
-                  <td key={col.key} className="p-3 border">
-                    {/* Actions */}
-                    {col.key === "actions" &&
-                    Array.isArray((row as any)?.actions) ? (
-                      <div className="flex gap-2">
-                        {(row as any).actions.map(
-                          (
-                            action: { url: string; label: string },
-                            idx: number
-                          ) => (
-                            <a
-                              key={idx}
-                              href={action.url}
-                              className="text-blue-600 hover:underline"
-                            >
-                              {action.label}
-                            </a>
-                          )
-                        )}
-                      </div>
+                {columns.map((col) => {
+                  const value = (row as any)?.[col.key];
 
-                    /* Difference */
-                    ) : col.key === "difference" ? (
-                      <span
-                        style={{
-                          color:
-                            (row as any)?.[col.key] > 0
-                              ? "red"
-                              : "green",
-                        }}
-                      >
-                        {(row as any)?.[col.key] ?? "-"}
-                      </span>
+                  return (
+                    <td
+                      key={String(col.key)}
+                      className={`p-3 border ${
+                        typeof value === "number" ? "text-right" : "text-left"
+                      }`}
+                    >
+                      {/* Actions */}
+                      {col.key === "actions" &&
+                      Array.isArray((row as any)?.actions) ? (
+                        <div className="flex gap-2">
+                          {(row as any).actions.map(
+                            (
+                              action: { url: string; label: string },
+                              idx: number
+                            ) => (
+                              <a
+                                key={idx}
+                                href={action.url}
+                                className="text-blue-600 hover:underline"
+                              >
+                                {action.label}
+                              </a>
+                            )
+                          )}
+                        </div>
 
-                    /* ✅ ApprovalComment (click to expand) */
-                    ) : col.key === "ApprovalComment" ? (
-                      <span
-                        className="cursor-pointer"
-                        onClick={() => toggleRow(row.id)}
-                      >
-                        {(row as any)[col.key]
-                          ? expandedRows[row.id]
-                            ? String((row as any)[col.key])
-                            : String((row as any)[col.key]).length > 15
-                            ? `${String((row as any)[col.key]).slice(0, 15)}...`
-                            : String((row as any)[col.key])
-                          : "-"}
-                      </span>
+                      /* Difference */
+                      ) : col.key === "difference" ? (
+                        <span
+                          style={{
+                            color: value > 0 ? "red" : "green",
+                          }}
+                        >
+                          {value ?? "-"}
+                        </span>
 
-                    /* Custom render */
-                    ) : col.render ? (
-                      col.render(row)
+                      /* ApprovalComment expand */
+                      ) : col.key === "ApprovalComment" ? (
+                        <span
+                          className="cursor-pointer"
+                          onClick={() => toggleRow(row.id)}
+                        >
+                          {value
+                            ? expandedRows[row.id]
+                              ? String(value)
+                              : String(value).length > 15
+                              ? `${String(value).slice(0, 15)}...`
+                              : String(value)
+                            : "-"}
+                        </span>
 
-                    /* Default */
-                    ) : (
-                      (row as any)?.[col.key] ?? "-"
-                    )}
-                  </td>
-                ))}
+                      /* Custom render */
+                      ) : col.render ? (
+                        col.render(row)
+
+                      /* Default */
+                      ) : (
+                        value ?? "-"
+                      )}
+                    </td>
+                  );
+                })}
               </tr>
             ))}
           </tbody>
+
+          {/* ✅ Sticky Footer */}
+          {isHeaderTotal && (
+            <tfoot className="sticky bottom-0 bg-gray-100 z-20">
+              <tr className="font-semibold">
+                {columns.map((col) => {
+                  const value = safeTotals[col.key as string];
+
+                  return (
+                    <td
+                      key={String(col.key)}
+                      className="p-3 border text-right"
+                    >
+                      {typeof value === "number"
+                        ? value.toFixed(2)
+                        : "-"}
+                    </td>
+                  );
+                })}
+              </tr>
+            </tfoot>
+          )}
         </table>
       </div>
-
-      {/* Footer */}
-      {isHeaderTotal && (
-        <div className="sticky bottom-0 bg-gray-100 border-t p-3 flex justify-between">
-          <span></span>
-          <span>Total Amount: ₹{totals.amount.toFixed(2)}</span>
-        </div>
-      )}
     </div>
   );
 }

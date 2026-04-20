@@ -2,27 +2,17 @@
 import { useEffect, useMemo, useState } from "react";
 import { usePathname } from "next/navigation";
 
-type Row = {
-  name: string;
-  open: number;
-  close: number;
-  amount: number;
-  issue: number;
-  ref: string;
-  price: number;
-  sales: number;
-};
 
 type Props = {
-  data: Row[];
+  data: CardRow[];
   verification: Record<string, boolean>;
-  OnPaymentSummaryUpdate: (data: Row[]) => void;
+  OnPaymentSummaryUpdate: (data: CardRow[]) => void;
   onVerifyChange: (key: string, value: boolean) => void;
   readOnly?: boolean; // Added readOnly prop
 };
 
 // ✅ Default row template
-const createEmptyRow = (): Row => ({
+const createEmptyRow = (): CardRow => ({
   name: "",
   price: 0,
   open: 0,
@@ -34,6 +24,7 @@ const createEmptyRow = (): Row => ({
 });
 
 import { toNumber } from "@/utils/commonTypes";
+import { CardRow } from "@/types/sales";
 
 // ✅ Round helper
 const round = (num: number) =>
@@ -46,12 +37,12 @@ export const CardDetailsTable = ({
   onVerifyChange,
   readOnly = false, // Default value for readOnly
 }: Props) => {
-  const [rows, setRows] = useState<Row[]>([]);
+  const [rows, setRows] = useState<CardRow[]>([]);
   const pathname = usePathname();
   const isViewMode = pathname.includes("view") || pathname.includes("unapproved");
 
   // ✅ Calculate row values
-  const calculateRow = (row: Row): Row => {
+  const calculateRow = (row: CardRow): CardRow => {
     const sales = row.close > 0 ? Math.max(0, toNumber(row.open) - toNumber(row.close)) : 0;
     const amount = row.close > 0 ? round(sales * toNumber(row.price)) : 0;
 
@@ -69,7 +60,7 @@ export const CardDetailsTable = ({
   }, [data]);
 
   // ✅ Update row
-  const updateRow = (index: number, field: keyof Row, value: any) => {
+  const updateRow = (index: number, field: keyof CardRow, value: any) => {
     const updated = rows.map((row, i) => {
       if (i !== index) return row;
 
